@@ -205,7 +205,7 @@ def _plate_view(period: pd.DataFrame, sel: Selection) -> None:
             + "\n<script>window.setTitle(" + json.dumps(sel.name) + ");"
             + "window.setHorizonMask(" + json.dumps([round(float(v), 4) for v in mask.mask_deg]) + ");"
             + "window.setTracks(" + json.dumps(tracks, separators=(",", ":")) + ");</script>\n")
-    embed_html(page, height=720)
+    embed_html(page, height=540)
     st.caption(f"Plate: the terrain horizon of {sel.name} at the panel height ({sel.panel_height_m:g} m) with the "
                f"computed tracks of the Sun and the Earth for the {sel.period_days}-day period from "
                f"{fmt_utc(sel.landing)}. The plate has its own time slider.")
@@ -369,7 +369,7 @@ def render(sel: Selection) -> None:
     right.markdown(_event_card(earth_event, "Earth", theme.EARTH, "Earthset", "Earthrise"), unsafe_allow_html=True)
     st.markdown(_plain_summary(sel, now, sun_event, earth_event, stats))
 
-    view = st.radio("View", ["Panorama", "Plate (ink drawing)"], horizontal=True, key="sky_view",
+    view = st.radio("View", ["Plate (ink drawing)", "Panorama"], horizontal=True, key="sky_view",
                     label_visibility="collapsed")
     if view == "Panorama":
         path, is_custom = panorama.background_path()
