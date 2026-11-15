@@ -1,0 +1,1005 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>LUNARIS — Lunar Landing Site Navigator (NASA Space Apps 2026)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&family=IM+Fell+English+SC&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+<style>
+  :root {
+    --bg: #1d1711;
+    --paper: #efe3c8;
+    --paper-hi: #f6eedb;
+    --paper-lo: #e2d1ae;
+    --surface: #f7f1e3;
+    --surface-warm: #ebdcb9;
+    --ink: #2a1d12;
+    --ink-soft: #4e3b29;
+    --muted: #6b5a47;
+    --line: #b9a27c;
+    --line-light: #d7c7a8;
+    --accent: #8a5a2b;
+    --earth: #56697e;
+    --ok: #2e5b3a;
+    --ok-bg: #e2ecdf;
+    --fail: #8d2f25;
+    --fail-bg: #f3dfd9;
+    --display: "IM Fell English", Georgia, serif;
+    --display-sc: "IM Fell English SC", "IM Fell English", Georgia, serif;
+    --body: "IBM Plex Sans", -apple-system, "Segoe UI", sans-serif;
+    --mono: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--body);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .deck {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 28px;
+    padding: 28px 20px 80px;
+  }
+
+  .slide {
+    width: 1280px;
+    height: 720px;
+    position: relative;
+    overflow: hidden;
+    background:
+      radial-gradient(ellipse at 50% 44%, var(--paper-hi) 0%, var(--paper) 64%, var(--paper-lo) 100%);
+    color: var(--ink);
+    padding: 34px 48px 46px;
+    box-shadow: 0 24px 60px rgba(0,0,0,0.55);
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Engraved copperplate double-rule frame */
+  .slide::before {
+    content: "";
+    position: absolute;
+    inset: 12px;
+    border: 1.5px solid var(--line);
+    pointer-events: none;
+    z-index: 1;
+  }
+  .slide::after {
+    content: "";
+    position: absolute;
+    inset: 17px;
+    border: 0.75px solid rgba(138, 90, 43, 0.35);
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  .slide > * { position: relative; z-index: 2; }
+
+  .plate-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 8px;
+    margin-bottom: 14px;
+    flex-shrink: 0;
+  }
+
+  .tabula {
+    font-family: var(--mono);
+    font-size: 11.5px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 600;
+  }
+
+  .plate-meta {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  h1, h2 {
+    font-family: var(--display);
+    font-weight: 400;
+    margin: 0;
+    color: var(--ink);
+  }
+
+  h2 {
+    font-size: 33px;
+    line-height: 1.1;
+    margin-bottom: 10px;
+  }
+
+  h2 em { font-style: italic; color: var(--accent); }
+
+  h3 {
+    font-family: var(--display-sc);
+    font-weight: 400;
+    font-size: 17px;
+    letter-spacing: 0.04em;
+    margin: 0 0 6px 0;
+    color: var(--accent);
+  }
+
+  p { margin: 0 0 8px 0; font-size: 14px; line-height: 1.46; color: var(--ink-soft); }
+
+  .lead-subtitle {
+    font-family: var(--display);
+    font-style: italic;
+    font-size: 17.5px;
+    color: var(--ink-soft);
+    margin: 0 0 14px 0;
+  }
+
+  .grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    flex: 1;
+    min-height: 0;
+  }
+
+  .grid-2-wide-left {
+    display: grid;
+    grid-template-columns: 1.18fr 0.82fr;
+    gap: 22px;
+    flex: 1;
+    min-height: 0;
+  }
+
+  .grid-2-wide-right {
+    display: grid;
+    grid-template-columns: 0.82fr 1.18fr;
+    gap: 22px;
+    flex: 1;
+    min-height: 0;
+  }
+
+  .grid-4 {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+  }
+
+  .card {
+    background: rgba(247, 241, 227, 0.82);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    padding: 13px 16px;
+    box-shadow: 0 4px 14px -10px rgba(42, 29, 18, 0.35);
+  }
+
+  .card-dark {
+    background: #23180f;
+    color: #efe3c8;
+    border: 1px solid #6b5239;
+    border-radius: 3px;
+    padding: 14px 18px;
+  }
+
+  .card-dark h3 { color: #d8a161; }
+  .card-dark p, .card-dark li { color: #e2d4bc; }
+
+  .kpi-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+
+  .kpi-box {
+    background: rgba(247, 241, 227, 0.9);
+    border: 1px solid var(--line);
+    border-top: 3px solid var(--accent);
+    padding: 10px 12px;
+    border-radius: 2px;
+  }
+
+  .kpi-val {
+    font-family: var(--display);
+    font-size: 27px;
+    line-height: 1.05;
+    color: var(--ink);
+    margin-bottom: 3px;
+  }
+
+  .kpi-lbl {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .kpi-val.fail { color: var(--fail); }
+  .kpi-val.ok { color: var(--ok); }
+  .kpi-val.earth { color: var(--earth); }
+
+  ul.engraved {
+    margin: 0;
+    padding-left: 18px;
+  }
+  ul.engraved li {
+    font-size: 13.5px;
+    line-height: 1.44;
+    color: var(--ink-soft);
+    margin-bottom: 6px;
+  }
+  ul.engraved li strong { color: var(--ink); }
+
+  table.ledger {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12.5px;
+    font-variant-numeric: tabular-nums;
+  }
+  table.ledger th {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    text-align: left;
+    padding: 6px 8px;
+    border-bottom: 1.5px solid var(--ink);
+    background: rgba(235, 220, 185, 0.5);
+  }
+  table.ledger td {
+    padding: 6px 8px;
+    border-bottom: 1px solid var(--line-light);
+    color: var(--ink);
+  }
+  table.ledger tr.highlight td {
+    background: rgba(141, 47, 37, 0.08);
+    font-weight: 600;
+  }
+
+  .pill {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 10.5px;
+    padding: 2px 7px;
+    border-radius: 2px;
+    border: 1px solid var(--line);
+    background: var(--surface);
+    color: var(--ink);
+  }
+  .pill.ok { color: var(--ok); border-color: #88ad8d; background: var(--ok-bg); }
+  .pill.fail { color: var(--fail); border-color: #c8867d; background: var(--fail-bg); }
+  .pill.earth { color: var(--earth); border-color: #8ea0b2; background: #e8edf2; }
+
+  .figure-frame {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    padding: 8px;
+    border-radius: 3px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 0;
+  }
+  .figure-frame img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    display: block;
+    border: 1px solid var(--line-light);
+  }
+  .figure-cap {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    color: var(--muted);
+    margin-top: 6px;
+    text-align: center;
+    line-height: 1.3;
+  }
+
+  .footer-bar {
+    position: absolute;
+    bottom: 20px;
+    left: 48px;
+    right: 48px;
+    border-top: 1px solid var(--line-light);
+    padding-top: 5px;
+    display: flex;
+    justify-content: space-between;
+    font-family: var(--mono);
+    font-size: 10.5px;
+    color: var(--muted);
+  }
+
+  .mono { font-family: var(--mono); }
+  .accent-text { color: var(--accent); font-weight: 600; }
+
+  .code-strip {
+    font-family: var(--mono);
+    font-size: 12px;
+    background: #23180f;
+    color: #efe3c8;
+    padding: 7px 11px;
+    border-radius: 3px;
+    border: 1px solid var(--accent);
+    word-break: break-all;
+  }
+
+  .step-num {
+    font-family: var(--display);
+    font-size: 28px;
+    color: var(--accent);
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+
+  /* Navigation overlay on screen only */
+  .nav-bar {
+    position: fixed;
+    bottom: 16px;
+    right: 20px;
+    z-index: 100;
+    background: rgba(29, 23, 17, 0.92);
+    border: 1px solid var(--accent);
+    border-radius: 6px;
+    padding: 8px 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #efe3c8;
+    font-family: var(--mono);
+    font-size: 12px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.45);
+  }
+  .nav-bar button {
+    background: #36281c;
+    color: #efe3c8;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 4px 10px;
+    cursor: pointer;
+    font-family: var(--mono);
+    font-size: 12px;
+  }
+  .nav-bar button:hover { border-color: #d8a161; }
+
+  @page {
+    size: 1280px 720px;
+    margin: 0;
+  }
+
+  @media print {
+    * {
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+    html, body {
+      margin: 0 !important;
+      padding: 0 !important;
+      background: var(--paper) !important;
+    }
+    .nav-bar { display: none !important; }
+    .deck {
+      display: block !important;
+      padding: 0 !important;
+      gap: 0 !important;
+    }
+    .slide {
+      margin: 0 !important;
+      box-shadow: none !important;
+      page-break-after: always;
+      break-after: page;
+      page-break-inside: avoid;
+      break-inside: avoid;
+    }
+    .slide:last-of-type {
+      page-break-after: auto;
+      break-after: auto;
+    }
+  }
+</style>
+</head>
+<body>
+
+<div class="nav-bar">
+  <span>LUNARIS · 7 Plates (16:9)</span>
+  <button onclick="scrollToSlide(-1)">Prev</button>
+  <button onclick="scrollToSlide(1)">Next</button>
+  <button onclick="window.print()">Print / Save PDF</button>
+</div>
+
+<div class="deck">
+
+<!-- ============================================================ SLIDE 1 ============================================================ -->
+<section class="slide" id="slide-1">
+  <div class="plate-header">
+    <span class="tabula">Tabula I · NASA International Space Apps Challenge 2026</span>
+    <span class="plate-meta">Challenge: Lunar Landing Site Navigator · Plate Aesthetic 1610</span>
+  </div>
+
+  <div style="display:grid; grid-template-columns: 1.15fr 0.85fr; gap: 26px; align-items: center; margin-top: 4px;">
+    <div>
+      <div style="font-family: var(--mono); font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--accent); margin-bottom: 6px;">
+        Sidereus Navis Lunaris · Precision Polar Mission Planner
+      </div>
+      <h1 style="font-size: 74px; line-height: 0.94; letter-spacing: 0.02em; margin-bottom: 8px;">LUNARIS</h1>
+      <div style="font-family: var(--display); font-style: italic; font-size: 26px; color: var(--accent); margin-bottom: 14px;">
+        Lunar Landing Site Navigator
+      </div>
+      <p style="font-size: 15.5px; line-height: 1.5; max-width: 58ch; margin-bottom: 16px;">
+        Topocentric ephemeris, <strong>10 m LOLA horizon ray-casting</strong>, dual-height solar &amp; antenna geometry, and coupled energy + radio link analysis to replace smooth-sphere guesswork at the lunar south pole.
+      </p>
+
+      <div style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom: 18px;">
+        <span class="pill">JPL DE421 · 0.0002° Max Error</span>
+        <span class="pill">19 Polar Sites · 95 Horizon Masks</span>
+        <span class="pill">720 Azimuths · 150 km Rays</span>
+        <span class="pill">Interactive 3D + 1610 Ink Plate</span>
+        <span class="pill ok">32/32 Unit Tests Passed</span>
+      </div>
+
+      <div class="card-dark" style="padding: 12px 16px;">
+        <div style="display:grid; grid-template-columns: auto 1fr; gap: 6px 14px; font-family: var(--mono); font-size: 11.5px; align-items: center;">
+          <span style="color:#d8a161;">LIVE APP:</span>
+          <span style="color:#f6eedb;">https://ladymoonweb-lunaris-app-gs0vnh.streamlit.app/</span>
+          <span style="color:#d8a161;">GITHUB:</span>
+          <span style="color:#f6eedb;">https://github.com/LadyMoonWeb/LUNARIS</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Custom Engraved Copperplate Horizon Diagram -->
+    <div class="card" style="padding: 14px; background: #ead9b6;">
+      <svg viewBox="0 0 460 360" width="100%" height="340" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <radialGradient id="sunGlow" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="#fff8e3" stop-opacity="0.95"/>
+            <stop offset="55%" stop-color="#e5b368" stop-opacity="0.35"/>
+            <stop offset="100%" stop-color="#efe3c8" stop-opacity="0"/>
+          </radialGradient>
+          <pattern id="hatchPattern" width="6" height="6" patternTransform="rotate(38)" patternUnits="userSpaceOnUse">
+            <line x1="0" y1="0" x2="0" y2="6" stroke="#472f1c" stroke-width="1.1"/>
+          </pattern>
+        </defs>
+        <rect x="0" y="0" width="460" height="360" fill="#efe3c8" stroke="#8a5a2b" stroke-width="1"/>
+        <!-- Celestial reticle -->
+        <line x1="18" y1="205" x2="442" y2="205" stroke="#8a5a2b" stroke-width="0.7" stroke-dasharray="3,4"/>
+        <text x="24" y="198" font-family="IBM Plex Mono, monospace" font-size="10" fill="#6b5a47">0° SPHERE</text>
+        <line x1="18" y1="125" x2="442" y2="125" stroke="#b9a27c" stroke-width="0.6" stroke-dasharray="2,4"/>
+        <text x="24" y="119" font-family="IBM Plex Mono, monospace" font-size="10" fill="#6b5a47">+3° RIM</text>
+
+        <!-- Stars (engraved crosses) -->
+        <g stroke="#4e3b29" stroke-width="0.8">
+          <path d="M85,48 v8 M81,52 h8"/>
+          <path d="M168,34 v6 M165,37 h6"/>
+          <path d="M292,55 v8 M288,59 h8"/>
+          <path d="M390,42 v6 M387,45 h6"/>
+          <circle cx="122" cy="76" r="1.2" fill="#2a1d12"/>
+          <circle cx="242" cy="64" r="1.2" fill="#2a1d12"/>
+          <circle cx="348" cy="82" r="1.2" fill="#2a1d12"/>
+        </g>
+
+        <!-- Earth Libration Loop + Disc -->
+        <ellipse cx="328" cy="112" rx="18" ry="44" fill="none" stroke="#56697e" stroke-width="1.3" stroke-dasharray="3,3" transform="rotate(-12 328 112)"/>
+        <circle cx="320" cy="74" r="9.5" fill="#56697e" stroke="#2a1d12" stroke-width="1.1"/>
+        <path d="M320,64.5 A9.5,9.5 0 0,1 320,83.5 Z" fill="#efe3c8" opacity="0.5"/>
+        <text x="333" y="77" font-family="IM Fell English, serif" font-style="italic" font-size="14" fill="#2a1d12">Earth (H<tspan baseline-shift="sub" font-size="10">a</tspan>)</text>
+
+        <!-- Sun Arc + Engraved Rays -->
+        <path d="M 45,235 Q 230,92 415,212" fill="none" stroke="#8a5a2b" stroke-width="1.4" stroke-dasharray="4,3"/>
+        <circle cx="230" cy="158" r="38" fill="url(#sunGlow)"/>
+        <g stroke="#2a1d12" stroke-width="1.1">
+          <line x1="230" y1="138" x2="230" y2="144"/>
+          <line x1="230" y1="172" x2="230" y2="178"/>
+          <line x1="210" y1="158" x2="216" y2="158"/>
+          <line x1="244" y1="158" x2="250" y2="158"/>
+          <line x1="216" y1="144" x2="220" y2="148"/>
+          <line x1="240" y1="168" x2="244" y2="172"/>
+          <line x1="244" y1="144" x2="240" y2="148"/>
+          <line x1="220" y1="168" x2="216" y2="172"/>
+        </g>
+        <circle cx="230" cy="158" r="9" fill="#fff6de" stroke="#2a1d12" stroke-width="1.3"/>
+        <text x="172" y="128" font-family="IM Fell English, serif" font-style="italic" font-size="15" fill="#2a1d12">Sun (Panel H<tspan baseline-shift="sub" font-size="10">p</tspan>)</text>
+
+        <!-- Hatched Lunar Terrain Profile (LOLA Horizon) -->
+        <path d="M18,342 L18,166 L58,158 L92,174 L134,195 L182,199 L212,175 L258,186 L296,154 L344,188 L398,176 L442,188 L442,342 Z"
+              fill="#6a492b" opacity="0.28"/>
+        <path d="M18,342 L18,166 L58,158 L92,174 L134,195 L182,199 L212,175 L258,186 L296,154 L344,188 L398,176 L442,188 L442,342 Z"
+              fill="url(#hatchPattern)" opacity="0.72"/>
+        <path d="M18,166 L58,158 L92,174 L134,195 L182,199 L212,175 L258,186 L296,154 L344,188 L398,176 L442,188"
+              fill="none" stroke="#2a1d12" stroke-width="2"/>
+
+        <text x="230" y="294" text-anchor="middle" font-family="IM Fell English, serif" font-size="18" fill="#2a1d12">IM-2 Athena · Mons Mouton (84.79° S)</text>
+        <text x="230" y="314" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10.5" fill="#4e3b29">LOLA 10 m / 40 m MASK · 720 DIRECTIONS · ZERO ATMOSPHERE</text>
+      </svg>
+    </div>
+  </div>
+
+  <div class="kpi-row" style="margin-top: auto; margin-bottom: 6px;">
+    <div class="kpi-box">
+      <div class="kpi-val fail">0.0 d / 12.75 h</div>
+      <div class="kpi-lbl">Athena In-Crater Sun (Actual Ops)</div>
+    </div>
+    <div class="kpi-box">
+      <div class="kpi-val earth">0.000196°</div>
+      <div class="kpi-lbl">Max Error vs JPL Horizons (5×300×2)</div>
+    </div>
+    <div class="kpi-box">
+      <div class="kpi-val">95 Masks + 19×3D</div>
+      <div class="kpi-lbl">Precomputed Polar Terrain ≤ 80° S</div>
+    </div>
+    <div class="kpi-box">
+      <div class="kpi-val ok">&lt; 30 MB Cloud</div>
+      <div class="kpi-lbl">Zero-DEM Live Streamlit Deployment</div>
+    </div>
+  </div>
+
+  <div class="footer-bar">
+    <span>LUNARIS · Team LadyMoonWeb · Open-Source MIT / NASA Public Datasets</span>
+    <span>Slide 1 of 7</span>
+  </div>
+</section>
+
+<!-- ============================================================ SLIDE 2 ============================================================ -->
+<section class="slide" id="slide-2">
+  <div class="plate-header">
+    <span class="tabula">Tabula II · The Physics Problem</span>
+    <span class="plate-meta">Why Lunar South Pole Landers Run Out of Power &amp; Link</span>
+  </div>
+
+  <h2>Why a <em>Smooth Sphere</em> Lies at the South Pole</h2>
+  <p class="lead-subtitle">At 80° S–90° S, sunlight skims the ground between −5.4° and +5.4°: a 2-metre crater wall decides mission survival.</p>
+
+  <div class="grid-2" style="align-items: stretch;">
+    <div style="display:flex; flex-direction:column; gap: 14px;">
+      <div class="card">
+        <h3>1 · Grazing Sun &amp; Earth Libration Trap</h3>
+        <ul class="engraved">
+          <li><strong>No atmosphere &amp; tiny tilt (1.54°):</strong> At IM-2 Athena (<strong>84.7906° S</strong>, Mons Mouton), the Sun sweeps 360° along the horizon between <strong>−5.44° and +5.36°</strong> elevation.</li>
+          <li><strong>Earth stays near the northern horizon:</strong> Optical librations pull Earth in a ±6.7° figure-eight box over a 27.21-day draconic cycle — dipping behind distant 150 km crater rims.</li>
+          <li><strong>Real LOLA proof vs Smooth Sphere (14 d from 2026-11-15):</strong> At <em>Peak Near Shackleton</em>, a smooth sphere predicts <strong>14.0 d Sun / 10.81 d joint</strong> (Pass). Real LOLA terrain drops joint viability to <strong>5.62 d (FAIL vs 6–6.5 d requirement)</strong>.</li>
+        </ul>
+      </div>
+
+      <div class="card" style="background: rgba(243, 223, 217, 0.55); border-color: #c8867d;">
+        <h3 style="color: var(--fail);">2 · Worked Real Failure: IM-2 “Athena” (6 Mar 2025)</h3>
+        <ul class="engraved">
+          <li><strong>Planned:</strong> ~10 days surface ops on Mons Mouton plateau (200 W rated Nova-C hexagonal lander).</li>
+          <li><strong>Reality:</strong> Tipped on its side inside a <strong>20 m diameter crater</strong> (LROC imaging); mission ended after <strong>12.75 hours</strong> with depleted batteries.</li>
+          <li><strong>Model insight:</strong> At 0.8 m on its side inside even a 2 m deep bowl (<em>d/D</em> = 0.1), the rim rises to <strong>3.6°–10.1°</strong> and yields <strong>0.00 d Sun</strong> in the first 12.75 h — whereas an upright deck at 4.0 m clears the rim cleanly!</li>
+        </ul>
+      </div>
+    </div>
+
+    <div style="display:flex; flex-direction:column; gap: 14px;">
+      <div class="card" style="flex: 1;">
+        <h3>What Generic Tools Miss — What LUNARIS Fixes</h3>
+        <table class="ledger" style="margin-top: 6px;">
+          <thead>
+            <tr>
+              <th>Planning Assumption</th>
+              <th>Generic Calculators</th>
+              <th>LUNARIS Solution</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Horizon Model</strong></td>
+              <td>Zero-degree flat / smooth sphere</td>
+              <td><strong>720-azimuth LOLA 10m/40m masks</strong> + lunar curvature out to 150 km</td>
+            </tr>
+            <tr class="highlight">
+              <td><strong>Hardware Height</strong></td>
+              <td>Single fixed height or hidden 2 m</td>
+              <td><strong>Independent Panel H<sub>p</sub></strong> (Sun) &amp; <strong>Antenna H<sub>a</sub></strong> (Earth) across all tabs</td>
+            </tr>
+            <tr>
+              <td><strong>Landing Slip</strong></td>
+              <td>Single snapshot date only</td>
+              <td><strong>12-month heatmap</strong> showing exact drop at +7 d and +14 d slips</td>
+            </tr>
+            <tr>
+              <td><strong>Micro-Terrain</strong></td>
+              <td>Hides 10 m grid limits</td>
+              <td><strong>Interactive 3D LOLA patch</strong> + explicit 20 m sub-grid crater model</td>
+            </tr>
+            <tr>
+              <td><strong>Short Windows</strong></td>
+              <td>False “Does not meet” when period &lt; 6 d</td>
+              <td>Explicit <strong>“N/A: period shorter than requirement”</strong> guard</td>
+            </tr>
+            <tr>
+              <td><strong>Non-Polar Sites</strong></td>
+              <td>Mixed silently or crashes</td>
+              <td>Honest smooth-sphere fallback + recommends nearest polar LOLA site</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card-dark" style="padding: 12px 16px;">
+        <div style="font-family: var(--mono); font-size: 11px; color: #d8a161; letter-spacing: 0.08em; margin-bottom: 4px;">KEY CASE-STUDY MEASUREMENT (EQUIPMENT_HEIGHT)</div>
+        <p style="font-size: 13px; margin: 0;">
+          Just <strong>716 m</strong> from Athena on a +36.7 m ridge crest, an antenna at ground level (0 m) suffers self-blocking (<strong>71.9%</strong> Earth LOS — worse than the plateau’s 79.4%). Raising the antenna by just <strong>1 m</strong> jumps Earth visibility to <strong>80.1% (+8.2 pp)</strong>.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer-bar">
+    <span>Sources: NASA LROC (IM-2 10 Mar 2025), Barker et al. 2023 (PGDA #90), Mazarico et al. 2011</span>
+    <span>Slide 2 of 7</span>
+  </div>
+</section>
+
+<!-- ============================================================ SLIDE 3 ============================================================ -->
+<section class="slide" id="slide-3">
+  <div class="plate-header">
+    <span class="tabula">Tabula III · Scientific Method &amp; System Architecture</span>
+    <span class="plate-meta">Four-Stage Physical Pipeline · Shared Single Scenario State</span>
+  </div>
+
+  <h2>Rigorous <em>Dual-Height</em> Lunar Visibility &amp; Power Engine</h2>
+  <p class="lead-subtitle">One unified scenario in the sidebar drives every chart, ink plate, comparison table, heatmap, and 3D terrain mesh.</p>
+
+  <div class="grid-4" style="margin-bottom: 14px;">
+    <div class="card">
+      <div class="step-num">I.</div>
+      <h3>Topocentric Ephemeris</h3>
+      <p style="font-size:12.8px;"><code>Skyfield</code> + NASA NAIF <strong>JPL DE421</strong> + <code>MOON_ME_DE421</code> orientation kernel (1900–2050). Computes true solar disk radius (~0.266°), Earth angular radius, optical libration &amp; distance. <strong>Zero atmospheric refraction.</strong></p>
+    </div>
+    <div class="card">
+      <div class="step-num">II.</div>
+      <h3>LOLA 720-Azimuth Masks</h3>
+      <p style="font-size:12.8px;">PGDA #90 DEMs (<strong>10 m near, 40 m to 150 km</strong>) ray-cast every <strong>0.5°</strong> with exact spherical drop:<br><span class="mono" style="font-size:11px;">atan2(r₁cosθ − r₀, r₁sinθ)</span>.<br>Precomputed for <strong>19 polar sites × 5 heights</strong> (95 files).</p>
+    </div>
+    <div class="card">
+      <div class="step-num">III.</div>
+      <h3>Dual-Height Split</h3>
+      <p style="font-size:12.8px;"><strong>Panel Height (H<sub>p</sub>)</strong> evaluates solar disk clearance for power. <strong>Antenna Height (H<sub>a</sub>)</strong> independently evaluates Earth disk clearance (center or any-limb switch) for radio line-of-sight.</p>
+    </div>
+    <div class="card">
+      <div class="step-num">IV.</div>
+      <h3>Power &amp; S-Band Link</h3>
+      <p style="font-size:12.8px;">Solar power <span class="mono" style="font-size:11px;">P = S·A·η·max(0,n·s)·V</span> with 28% GaAs cells, 700 Wh battery, 100 W load, 80% DoD shed &amp; taper charge. Coupled with <strong>2.2 GHz S-band DSN 34 m</strong> link margin.</p>
+    </div>
+  </div>
+
+  <div class="grid-2" style="align-items: stretch;">
+    <div class="card">
+      <h3>Curated Official Sites &amp; Honest Limits</h3>
+      <ul class="engraved" style="margin-top:4px;">
+        <li><strong>Apollo 11–17 &amp; Surveyor 1–7 &amp; Luna 9–24:</strong> LRO-surveyed NSSDC coordinates.</li>
+        <li><strong>Commercial &amp; Agency Landers:</strong> IM-1 Odysseus, IM-2 Athena (planned &amp; landed), Blue Ghost 1, Chang’e 3–6, Chandrayaan-3, SLIM.</li>
+        <li><strong>Artemis III (2022) Regions:</strong> 13 PGDA #104 south polar region centres + full terrain masks.</li>
+        <li><strong>Transparency Guardrails:</strong> IM-1 at grid border (41% outer samples) explicitly flagged as <em>partial terrain</em>; Apollo/custom mid-latitude sites state smooth sphere &amp; name nearest 3D polar site instead of faking relief.</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>Baseline S-Band Direct-to-Earth Link Budget (<span class="mono" style="font-size:12px;">link.py</span>)</h3>
+      <table class="ledger" style="margin-top: 4px;">
+        <thead>
+          <tr><th>Link Parameter (384,400 km)</th><th>Baseline Value</th><th>Physical Note</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Carrier / TX Power / Antenna</td><td><strong>2.2 GHz · 10 W · 6 dBi</strong></td><td>Generic S-band MGA lander (EIRP = 14.0 dBW)</td></tr>
+          <tr><td>Free-Space Path Loss (FSPL)</td><td><strong>210.99 dB</strong></td><td>Dynamically varies with true Earth-Moon distance</td></tr>
+          <tr><td>Receive Station (DSN)</td><td><strong>34 m · η = 0.6 · T = 40 K</strong></td><td>Station G/T = <strong>39.65 dB/K</strong>; 2 dB atm/pol loss</td></tr>
+          <tr class="highlight"><td><strong>Downlink Margin (100 kbps)</strong></td><td><strong>+16.25 dB</strong> (E<sub>b</sub>/N<sub>0</sub> = 19.25 dB)</td><td>C/N₀ = 69.25 dB-Hz vs 3.0 dB req; <strong>&lt; 6° multipath flag</strong></td></tr>
+        </tbody>
+      </table>
+      <p style="font-size:11.5px; color:var(--muted); margin-top:8px;">* Both power (tracking / vertical / horizontal faces) and antenna gains can be tuned live in the Sky tab.</p>
+    </div>
+  </div>
+
+  <div class="footer-bar">
+    <span>Module Stack: lunarnav/{ephemeris, terrain, compute, metrics, crater, energy, link, sites}.py</span>
+    <span>Slide 3 of 7</span>
+  </div>
+</section>
+
+<!-- ============================================================ SLIDE 4 ============================================================ -->
+<section class="slide" id="slide-4">
+  <div class="plate-header">
+    <span class="tabula">Tabula IV · IM-2 Athena Case Study (Research Tab)</span>
+    <span class="plate-meta">20 m Crater Posture Model · Launch Date Shift Sensitivity</span>
+  </div>
+
+  <h2>IM-2 Athena Findings: <em>Two Metres &amp; Seven Days</em> Decide Survival</h2>
+  <p class="lead-subtitle">Reconstructing the March 6, 2025 touchdown using real LOLA terrain, a parametric 20 m bowl crater, and a coupled 700 Wh battery model.</p>
+
+  <div class="grid-2" style="align-items: stretch;">
+    <div style="display:flex; flex-direction:column; gap:10px; min-height:0;">
+      <div class="figure-frame" style="flex:1;">
+        <img src="figures/athena_energy.png" alt="Athena battery charge across plateau and 20 m crater models" style="max-height: 280px;">
+        <div class="figure-cap">Fig. 1 (data/analysis/athena_energy.png) — Uprightly standing on plateau or 2 m crater holds 100% SoC; lying on its side inside a 2 m/4 m deep crater triggers immediate load shed at 20% SoC.</div>
+      </div>
+      <div class="card" style="padding: 10px 14px;">
+        <h3>Why Lying on Its Side Killed Power</h3>
+        <p style="font-size:12.8px; margin:0;">
+          Athena's plateau was sunlit for all <strong>10.0 planned days</strong>. However, inside a 20 m bowl crater (diameter per LROC; depths 2 m &amp; 4 m modeled), an upright 4.0 m deck clears the rim, while a side-resting body (0.8–1.6 m) faces <strong>3.6°–20.6° crater walls</strong> and sees <strong>0.0 h sunlight in the first 12.75 hours</strong>.
+        </p>
+      </div>
+    </div>
+
+    <div style="display:flex; flex-direction:column; gap:10px; min-height:0;">
+      <div class="figure-frame" style="flex:1;">
+        <img src="figures/landing_shift.png" alt="Battery charge under 0-day, 7-day, and 14-day launch slip" style="max-height: 280px;">
+        <div class="figure-cap">Fig. 2 (data/analysis/landing_shift.png) — Planned 6 Mar 2025 delivers 10.0 d Sun (199.5 W vertical); a 7-day slip sheds load at 153.2 h; a 14-day slip fails inside 6 hours.</div>
+      </div>
+      <div class="card" style="padding: 10px 14px;">
+        <h3>Polar Array Geometry &amp; Schedule Cliff</h3>
+        <p style="font-size:12.8px; margin:0;">
+          With grazing polar sunlight (&le; 5.36°), a <strong>flat horizontal top panel produces only 15.5 W</strong> (shedding load in <strong>6.2 h</strong> even on the ideal date!), whereas <strong>six vertical faces or Sun tracking average ~200 W</strong>. Shifting touchdown by +7 days slashes sunlit days from <strong>10.0 d to 6.12 d</strong> (86.8 h blackout).
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer-bar">
+    <span>Explicit Scientific Disclosure: 20 m sub-grid crater depth &amp; 700 Wh / 100 W hardware parameters are clearly labeled models</span>
+    <span>Slide 4 of 7</span>
+  </div>
+</section>
+
+<!-- ============================================================ SLIDE 5 ============================================================ -->
+<section class="slide" id="slide-5">
+  <div class="plate-header">
+    <span class="tabula">Tabula V · Mission Planning Suite</span>
+    <span class="plate-meta">Galileo Copperplate Sky View · Multi-Site Compare · 12-Month Launch Slip</span>
+  </div>
+
+  <h2>Real-Time Horizon Plate &amp; <em>Artemis III</em> Trade-Off Matrix</h2>
+  <p class="lead-subtitle">Live output of LUNARIS for the current competition date (2026-11-15 00:00 UTC · 14-day period · 2 m panels &amp; antenna).</p>
+
+  <div class="grid-2-wide-left" style="align-items: stretch;">
+    <div style="display:flex; flex-direction:column; gap:10px; min-height:0;">
+      <div class="figure-frame" style="flex:1; background: #efe3c8;">
+        <img src="figures/plate_crop.png" alt="Live Galileo 1610 Ink Plate of IM-2 Athena Horizon" style="max-height: 360px;">
+        <div class="figure-cap">Live Plate view (Tabula Sky) showing IM-2 Athena's true 720-direction LOLA horizon at H<sub>p</sub> = 2 m, 14-day ephemeris Sun &amp; Earth paths, and synchronized time slider.</div>
+      </div>
+      <div class="card" style="padding: 10px 14px;">
+        <h3>Six Synchronized Views</h3>
+        <p style="font-size:12.8px; margin:0;">
+          <strong>Sky</strong> (Plotly panorama + interactive 1610 ink <em>Plate</em>) · <strong>Compare</strong> (2–4 site+date scenarios side-by-side) · <strong>Launch Slip</strong> (year-round heatmap 1950–2048) · <strong>Site</strong> (3D inspector) · <strong>Research</strong> · <strong>Validation</strong>.
+        </p>
+      </div>
+    </div>
+
+    <div style="display:flex; flex-direction:column; gap:12px;">
+      <div class="card" style="flex: 1;">
+        <h3>14-Day Polar Benchmark (2026-11-15, H = 2 m)</h3>
+        <table class="ledger" style="margin-top:6px;">
+          <thead>
+            <tr>
+              <th>Landing Site / Region</th>
+              <th>Sphere</th>
+              <th>LOLA Real</th>
+              <th>Verdict (6–6.5 d)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>IM-2 Athena</strong><br><span style="font-size:10.5px; color:var(--muted);">84.79° S · Mons Mouton</span></td>
+              <td>14.00 d</td>
+              <td><strong>13.74 d</strong></td>
+              <td><span class="pill ok">Meets</span></td>
+            </tr>
+            <tr>
+              <td><strong>Connecting Ridge</strong><br><span style="font-size:10.5px; color:var(--muted);">Artemis III · 89.46° S</span></td>
+              <td>11.12 d</td>
+              <td><strong>12.46 d</strong></td>
+              <td><span class="pill ok">Meets (100% Sun)</span></td>
+            </tr>
+            <tr>
+              <td><strong>Malapert Massif</strong><br><span style="font-size:10.5px; color:var(--muted);">Artemis III · 85.98° S</span></td>
+              <td>13.95 d</td>
+              <td><strong>10.74 d</strong></td>
+              <td><span class="pill ok">Meets</span></td>
+            </tr>
+            <tr>
+              <td><strong>IM-1 Odysseus</strong> <span style="font-size:10px; color:var(--muted);">(partial mask)</span><br><span style="font-size:10.5px; color:var(--muted);">80.13° S · Malapert A</span></td>
+              <td>12.89 d</td>
+              <td><strong>10.03 d</strong></td>
+              <td><span class="pill ok">Meets</span></td>
+            </tr>
+            <tr>
+              <td><strong>de Gerlache Rim 2</strong><br><span style="font-size:10.5px; color:var(--muted);">Artemis III · 88.25° S</span></td>
+              <td>12.04 d</td>
+              <td><strong>7.84 d</strong></td>
+              <td><span class="pill ok">Meets (+1.3 d margin)</span></td>
+            </tr>
+            <tr class="highlight">
+              <td><strong>Peak Near Shackleton</strong><br><span style="font-size:10.5px; color:var(--fail);">Terrain trap revealed!</span></td>
+              <td style="white-space:nowrap;">10.81 d</td>
+              <td style="white-space:nowrap;"><strong style="color:var(--fail);">5.62 d</strong></td>
+              <td><span class="pill fail">Does Not Meet</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card-dark" style="padding: 12px 15px;">
+        <div style="font-family: var(--mono); font-size: 11px; color: #d8a161; margin-bottom: 4px;">MISSION PLANNER VALUE IN 30 SECONDS</div>
+        <p style="font-size: 12.8px; margin: 0;">
+          At <em>Peak Near Shackleton</em> on 15 Nov 2026, smooth-sphere geometry falsely promises 14 d Sun and 10.81 d joint link, whereas real LOLA terrain exposes a <strong>4.38-day loss</strong> that drops continuous ops below the 6-day Artemis requirement.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer-bar">
+    <span>Metrics computed live from data/masks/*.json (720 azimuths) &amp; DE421 ephemeris at 60-min cadence</span>
+    <span>Slide 5 of 7</span>
+  </div>
+</section>
+
+<!-- ============================================================ SLIDE 6 ============================================================ -->
+<section class="slide" id="slide-6">
+  <div class="plate-header">
+    <span class="tabula">Tabula VI · Interactive 3D Polar Terrain Inspector (Site Tab)</span>
+    <span class="plate-meta">3 × 3 km LOLA 10 m Mesh · Click-to-Probe Landing Ellipse &amp; Sky Dome</span>
+  </div>
+
+  <h2>3D Surface Inspector: <em>Landing Ellipse, Sky Dome &amp; Posture</em></h2>
+  <p class="lead-subtitle">Every polar preset loads a precomputed 3D patch with dynamic shadow playback, posture toggle, and clickable safety verdicts.</p>
+
+  <div class="grid-2-wide-right" style="align-items: stretch;">
+    <div style="display:flex; flex-direction:column; gap:12px;">
+      <div class="card">
+        <h3>Interactive Engineering Controls</h3>
+        <ul class="engraved" style="margin-top:4px;">
+          <li><strong>Click Any Cell Card:</strong> Instant probe reports East/North offset, elevation, sunlit days, comm days, joint days, longest unbroken stretch, and <strong>6–6.5 d mission verdict</strong>.</li>
+          <li><strong>Configurable Landing Ellipse (50–500 m):</strong> Colors cells green (<strong>&ge; 6 d</strong>) vs red (&lt; 6 d) and outputs exact <strong>% Safe Area</strong> (100% at IM-2 for 200 m radius on Nov 15).</li>
+          <li><strong>3D Sky Dome &amp; Earth LOS Ray:</strong> Traces the Sun's path for the selected period + casts a <strong>green (clear)</strong> or <strong>red (blocked)</strong> ray from the lander to Earth.</li>
+          <li><strong>Posture-Aware 3D Lander:</strong> Toggle <strong>Upright</strong> vs <strong>On its side</strong>; solar panels render bright when lit and cross-hatched in shadow.</li>
+          <li><strong>Terrain Modes &amp; Sync Timeline:</strong> Switch coloring between <strong>Illumination / Elevation / Slope (&ge; 15° hazard)</strong>; scrub synchronized <strong>Sun / Comm strips</strong> with 1×/2×/4× vertical exaggeration.</li>
+        </ul>
+      </div>
+
+      <div class="card" style="background: var(--surface-warm); padding: 11px 14px;">
+        <h3>Honest Separation of Numerics vs. Visuals</h3>
+        <p style="font-size:12.5px; margin:0;">
+          Site verdicts &amp; timeline bars come from high-precision <strong>720-direction 150 km masks</strong> at sidebar H<sub>p</sub> / H<sub>a</sub>. Cell ellipse shadows use <strong>36-direction 30 km</strong> per-cell horizons (verified within <strong>0.09° mean</strong> of full masks).
+        </p>
+      </div>
+    </div>
+
+    <div class="figure-frame" style="background: #17130f; border-color: #6b5239;">
+      <img src="figures/site3d_crop.png" alt="Live LUNARIS 3D Site Inspector screenshot" style="max-height: 455px;">
+      <div class="figure-cap" style="color: #d6c5a9;">Live 3D Site screenshot (IM-2 Athena): Selected Point card, 200 m safe-area ellipse (100% &ge; 6 d), green Earth line-of-sight ray, synchronized Sun/Comm strip, and posture controls.</div>
+    </div>
+  </div>
+
+  <div class="footer-bar">
+    <span>19 Precomputed Polar 3D Patches (Total ~7 MB JSON) · Zero server DEM needed on Streamlit Cloud</span>
+    <span>Slide 6 of 7</span>
+  </div>
+</section>
+
+<!-- ============================================================ SLIDE 7 ============================================================ -->
+<section class="slide" id="slide-7">
+  <div class="plate-header">
+    <span class="tabula">Tabula VII · Independent Verification &amp; Readiness</span>
+    <span class="plate-meta">NASA Benchmark Checks · 32 Automated Tests · Live Public Deployment</span>
+  </div>
+
+  <h2>Validated to <em>0.0002°</em> &amp; Live in the Cloud</h2>
+  <p class="lead-subtitle">Every astronomical, geometric, and illumination output was cross-checked against external NASA benchmarks and an independent verifier.</p>
+
+  <div class="card" style="margin-bottom: 14px;">
+    <h3>Quantitative Benchmark Verification Table</h3>
+    <table class="ledger" style="margin-top: 6px;">
+      <thead>
+        <tr>
+          <th>Verification Benchmark</th>
+          <th>Sample / Scope</th>
+          <th>Measured Agreement</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>JPL Horizons Ephemeris</strong></td>
+          <td>5 sites × 300 random instants × 2 bodies</td>
+          <td><strong>0.000196° max</strong> · 0.000007° mean (tol. 0.01°)</td>
+          <td><span class="pill ok">Verified</span></td>
+        </tr>
+        <tr>
+          <td><strong>Independent Mask Re-implementation</strong></td>
+          <td>720 azimuths recomputed by separate agent code</td>
+          <td><strong>&lt; 0.001° difference</strong> (caught &amp; fixed 0.36° bug)</td>
+          <td><span class="pill ok">Verified</span></td>
+        </tr>
+        <tr>
+          <td><strong>Mazarico et al. (2011) 18.6-yr Map</strong></td>
+          <td>PGDA #69 Sun &amp; Earth over full nodal cycle</td>
+          <td>Athena 44.4% vs 46.8% · Summits 81–85% vs 83–88% · Earth ±0.2 pp</td>
+          <td><span class="pill ok">Verified</span></td>
+        </tr>
+        <tr>
+          <td><strong>5 m Shape-from-Shading (Bertone 2025)</strong></td>
+          <td>PGDA #104 vs 10 m LOLA overlap at Athena</td>
+          <td>Height σ = <strong>0.7 m</strong> · Mask max Δ <strong>0.005°</strong></td>
+          <td><span class="pill ok">Verified</span></td>
+        </tr>
+        <tr>
+          <td><strong>Automated Regression &amp; Cloud Suite</strong></td>
+          <td>32 pytest checks + zero-DEM cloud boot &amp; browser QA</td>
+          <td><strong>32 / 32 Passed</strong> (pandas datetime fix covered) · 0 console errors</td>
+          <td><span class="pill ok">100% Pass</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="grid-2" style="align-items: stretch;">
+    <div class="card-dark" style="display:flex; flex-direction:column; justify-content:center; gap: 10px;">
+      <div style="font-family: var(--mono); font-size: 11.5px; color: #d8a161; letter-spacing: 0.12em;">OPEN FOR NASA SPACE APPS JUDGES</div>
+      <div>
+        <div style="font-size: 12px; color: #cbb99e; margin-bottom: 3px;">Live Interactive Web Application (No Login Required):</div>
+        <div class="code-strip">https://ladymoonweb-lunaris-app-gs0vnh.streamlit.app/</div>
+      </div>
+      <div>
+        <div style="font-size: 12px; color: #cbb99e; margin-bottom: 3px;">Public Source Code, Masks, Validation &amp; Paper Notes:</div>
+        <div class="code-strip">https://github.com/LadyMoonWeb/LUNARIS</div>
+      </div>
+    </div>
+
+    <div class="card" style="display:flex; flex-direction:column; justify-content:space-between;">
+      <div>
+        <h3>Why LUNARIS Wins</h3>
+        <ul class="engraved" style="margin-top:4px;">
+          <li><strong>Real science in 30 seconds:</strong> Opens directly on IM-2 Athena's 720-azimuth LOLA horizon with unambiguous 6–6.5 d Go / No-Go verdicts.</li>
+          <li><strong>True dual-height physics:</strong> Separates solar panel height from antenna height everywhere.</li>
+          <li><strong>Cloud-native &amp; ultra-fast:</strong> Zero 1 GB DEM dependencies at runtime (&lt; 30 MB repository); all 6 interactive views run live in browser.</li>
+        </ul>
+      </div>
+      <div style="font-family: var(--display); font-style: italic; font-size: 16px; color: var(--accent); border-top: 1px solid var(--line-light); padding-top: 6px; text-align: right;">
+        “Non est ad astra mollis e terris via — plan with true horizons.”
+      </div>
+    </div>
+  </div>
+
+  <div class="footer-bar">
+    <span>LUNARIS · NASA Space Apps Challenge 2026 · Complete 7-Slide Demonstration</span>
+    <span>Slide 7 of 7</span>
+  </div>
+</section>
+
+</div>
+
+<script>
+  function scrollToSlide(dir) {
+    var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+    var y = window.scrollY + 80;
+    var cur = 0;
+    for (var i = 0; i < slides.length; i++) {
+      if (slides[i].offsetTop <= y) cur = i;
+    }
+    var next = Math.max(0, Math.min(slides.length - 1, cur + dir));
+    slides[next].scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'ArrowDown' || e.key === 'ArrowRight' || e.key === 'PageDown') {
+      e.preventDefault(); scrollToSlide(1);
+    } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft' || e.key === 'PageUp') {
+      e.preventDefault(); scrollToSlide(-1);
+    }
+  });
+</script>
+</body>
+</html>

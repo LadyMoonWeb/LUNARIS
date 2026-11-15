@@ -1,5 +1,9 @@
 # LUNARIS — Lunar Landing Site Navigator
 
+- **Live App:** https://ladymoonweb-lunaris-app-gs0vnh.streamlit.app/
+- **7-Slide Presentation (PDF):** [LUNARIS_Presentation.pdf](LUNARIS_Presentation.pdf)
+- **GitHub Repository:** https://github.com/LadyMoonWeb/LUNARIS
+
 A tool for the NASA Space Apps 2026 challenge "Lunar Landing Site Navigator".
 Pick a place on the Moon and a date, and it shows where the Sun and the Earth
 stand against the local horizon, how long there is light for power and line of
