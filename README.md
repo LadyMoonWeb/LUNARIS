@@ -1,4 +1,4 @@
-# Lunar Landing Site Navigator
+# LUNARIS — Lunar Landing Site Navigator
 
 A tool for the NASA Space Apps 2026 challenge "Lunar Landing Site Navigator".
 Pick a place on the Moon and a date, and it shows where the Sun and the Earth

@@ -10,10 +10,10 @@ import streamlit as st
 from ui import compare, launch_slip, research, site3d, sky, validation
 from ui.common import CSS, sidebar
 
-st.set_page_config(page_title="Lunar Landing Site Navigator", page_icon="\U0001F319", layout="wide")
+st.set_page_config(page_title="LUNARIS — Lunar Landing Site Navigator", page_icon="\U0001F319", layout="wide")
 st.markdown(CSS, unsafe_allow_html=True)
 
-st.title("Lunar Landing Site Navigator")
+st.title("LUNARIS — Lunar Landing Site Navigator")
 st.caption("Sunlight and direct-to-Earth communication windows for lunar landing sites. "
            "Terrain horizon from LOLA elevation data where a mask is available; smooth sphere elsewhere.")
 
