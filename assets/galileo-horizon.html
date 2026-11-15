@@ -1,0 +1,474 @@
+<title>Galileo Horizon</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&family=IM+Fell+English+SC&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: one artwork band (the lunar horizon drawn like a 1610 ink-wash plate), quiet notes underneath */
+:root {
+  --bg: #e9e2d3;
+  --surface: #f4efe4;
+  --ink: #2a1d12;
+  --muted: #6b5a47;
+  --line: #cdbfa6;
+  --accent: #8a5a2b;
+  --focus: #8a5a2b;
+  /* the plate keeps its own paper-and-ink palette in both themes */
+  --plate-paper: #efe3c8;
+  --plate-edge: #b9a27c;
+  --display: "IM Fell English", "Iowan Old Style", Georgia, serif;
+  --display-sc: "IM Fell English SC", "IM Fell English", Georgia, serif;
+  --body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #17130f; --surface: #211b15; --ink: #ece3d2; --muted: #ad9d86; --line: #3a3027;
+    --accent: #d39a5c; --focus: #d39a5c; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #17130f; --surface: #211b15; --ink: #ece3d2; --muted: #ad9d86; --line: #3a3027;
+  --accent: #d39a5c; --focus: #d39a5c; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 16px; line-height: 1.55;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.wrap { max-width: 1180px; margin: 0 auto; padding-block: 36px 64px; display: grid; gap: 28px; }
+header { display: grid; gap: 10px; }
+.eyebrow { font-family: var(--mono); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+h1 { font-family: var(--display); font-weight: 400; font-size: clamp(34px, 6vw, 56px); line-height: 1.02; margin: 0; letter-spacing: 0.005em; }
+h1 em { font-style: italic; color: var(--accent); }
+.lead { max-width: 66ch; margin: 0; font-size: 17px; }
+.plate {
+  border-radius: 4px; background: var(--plate-paper);
+  box-shadow: 0 0 0 1px var(--plate-edge), 0 18px 40px -24px rgba(40, 25, 10, 0.55);
+  overflow: hidden;
+}
+.plate-scroll { overflow-x: auto; }
+canvas { display: block; width: 100%; min-width: 760px; height: auto; aspect-ratio: 1600 / 520; }
+.controls { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 18px; }
+button {
+  font: 500 14px var(--mono); color: var(--ink); background: var(--surface);
+  border: 1px solid var(--line); border-radius: 6px; padding: 8px 14px; cursor: pointer; min-width: 96px;
+}
+button:hover { border-color: var(--accent); }
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.scrub { flex: 1 1 260px; display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 10px; align-items: center; }
+.scrub label { font-family: var(--mono); font-size: 12.5px; color: var(--muted); }
+input[type="range"] { width: 100%; accent-color: var(--accent); }
+.readout { font-family: var(--mono); font-size: 13px; display: flex; flex-wrap: wrap; gap: 4px 22px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.readout b { font-weight: 500; color: var(--ink); }
+.on { color: var(--accent); }
+.notes { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 24px; border-top: 1px solid var(--line); padding-top: 22px; }
+.notes section { display: grid; gap: 8px; align-content: start; min-width: 0; }
+.notes h2 { font-family: var(--display); font-weight: 400; font-style: italic; font-size: 22px; margin: 0; }
+.notes p { margin: 0; font-size: 15px; max-width: 60ch; }
+code { font-family: var(--mono); font-size: 13px; background: var(--surface); border: 1px solid var(--line); border-radius: 4px; padding: 1px 5px; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<main class="wrap">
+  <header>
+    <div class="eyebrow">Plate view · Lunar Landing Site Navigator</div>
+    <h1>Galileo <em>Horizon</em></h1>
+    <p class="lead">The horizon of a south-polar landing site, drawn in the manner of Galileo's 1610 ink-wash Moon and engraved star atlases. The Sun crawls along the horizon and hides behind ridges; the Earth bobs with libration and changes phase.</p>
+  </header>
+
+  <figure class="plate" style="margin:0">
+    <div class="plate-scroll">
+      <canvas id="plate" width="1600" height="520" role="img" aria-label="Animated 360-degree horizon panorama in ink-wash style: terrain silhouette, the Sun skimming the horizon, the Earth near north"></canvas>
+    </div>
+  </figure>
+
+  <div class="controls">
+    <button id="play" type="button" aria-pressed="true">Pause</button>
+    <div class="scrub">
+      <label for="day">Day</label>
+      <input id="day" type="range" min="0" max="29.53" step="0.01" value="6.2">
+    </div>
+  </div>
+  <div class="readout" id="readout" aria-live="polite"></div>
+
+  <div class="notes">
+    <section>
+      <h2>Why this style</h2>
+      <p>Galileo was the first to see that the Moon has mountains, from the shadows along the terminator. This tool does the same with the LOLA laser altimeter. The plate links 1610 and 2026.</p>
+    </section>
+    <section>
+      <h2>What is physical here</h2>
+      <p>Ridges opposite the Sun are lit; ridges on the Sun's side are dark silhouettes. The Earth's phase is opposite: when the Sun stands near the Earth in the sky, the Earth is nearly "new". When terrain hides the Sun, the sky darkens: no power. The Sun disc is drawn larger than its true 0.53°, and the vertical scale is stretched.</p>
+    </section>
+    <section>
+      <h2>Data</h2>
+      <p>The silhouette comes from <code>setHorizonMask(array)</code>: 720 horizon elevations in degrees, azimuth 0–359.5° in 0.5° steps. Sun and Earth tracks come from <code>setTracks({sun, earth})</code>: lists of {t, az, alt} from the app's ephemeris. Without tracks the plate shows an illustrative lunar day.</p>
+    </section>
+  </div>
+</main>
+
+<script>
+(function () {
+  "use strict";
+  var W = 1600, H = 520;
+  var X0 = 74, X1 = W - 34, Y0 = 70, YB = H - 84;
+  var EMIN = -3, EMAX = 9;
+  var R = Math.PI / 180;
+  var LUNAR_DAY = 29.53, DRACONIC = 27.21;
+  var INK = "#2a1d12", PAPER = "#efe3c8", PAPER_HI = "#f8efda", EARTH = "#56697e";
+
+  var canvas = document.getElementById("plate");
+  var dpr = Math.min(2, window.devicePixelRatio || 1);
+  canvas.width = W * dpr; canvas.height = H * dpr;
+  var ctx = canvas.getContext("2d");
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+  function wrap180(a) { return ((a + 180) % 360 + 360) % 360 - 180; }
+  function wrap360(a) { return ((a % 360) + 360) % 360; }
+  function gauss(a, c, w) { var d = wrap180(a - c) / w; return Math.exp(-d * d); }
+  function rng(seed) { return function () { seed |= 0; seed = seed + 0x6D2B79F5 | 0; var t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+
+  // ---------- horizon mask: 720 values, azimuth 0..359.5 deg, clockwise from north ----------
+  var mask = new Float32Array(720);
+  function defaultMask(a) {
+    var r = a * R;
+    return 0.55 + 0.5 * Math.sin(2 * r + 0.6) + 0.38 * Math.sin(5 * r + 1.3) + 0.17 * Math.sin(11 * r + 0.2) +
+      0.07 * Math.sin(23 * r + 2.0) + 1.9 * gauss(a, 298, 14) + 1.1 * gauss(a, 252, 9) -
+      0.8 * gauss(a, 38, 12) + 0.9 * gauss(a, 140, 20) + 0.6 * gauss(a, 205, 7);
+  }
+  for (var i = 0; i < 720; i++) mask[i] = defaultMask(i * 0.5);
+  function maskAt(az) {
+    var a = wrap360(az) / 0.5, k = Math.floor(a), f = a - k;
+    return mask[k % 720] * (1 - f) + mask[(k + 1) % 720] * f;
+  }
+
+  // ---------- illustrative ephemeris ----------
+  var tracks = null, realMask = false, SPAN = LUNAR_DAY;
+  function sunModel(t) { var az = wrap360(90 - 360 * t / LUNAR_DAY); return { az: az, el: 0.85 + 0.8 * Math.cos(az * R) }; }
+  function earthModel(t) { var p = 2 * Math.PI * t / DRACONIC; return { az: wrap360(7.5 * Math.sin(p)), el: 0.8 + 6.5 * Math.sin(p + 0.8) }; }
+  function interp(list, t) {
+    if (t <= list[0].t) return { az: list[0].az, el: list[0].el };
+    var lo = 0, hi = list.length - 1;
+    if (t >= list[hi].t) return { az: list[hi].az, el: list[hi].el };
+    while (hi - lo > 1) { var mid = (lo + hi) >> 1; if (list[mid].t <= t) lo = mid; else hi = mid; }
+    var a = list[lo], b = list[hi], f = (t - a.t) / (b.t - a.t);
+    return { az: wrap360(a.az + wrap180(b.az - a.az) * f), el: a.el + (b.el - a.el) * f };
+  }
+  function sunAt(t) { return tracks ? interp(tracks.sun, t) : sunModel(t); }
+  function earthAt(t) { return tracks ? interp(tracks.earth, t) : earthModel(t); }
+
+  function X(az) { return X0 + (wrap180(az) + 180) / 360 * (X1 - X0); }
+  // for paths that run from -180 to +180 without wrapping the right edge back to the left
+  function Xp(a) { return X0 + (a + 180) / 360 * (X1 - X0); }
+  function invX(x) { return (x - X0) / (X1 - X0) * 360 - 180; }
+  function Y(e) { return YB - (e - EMIN) / (EMAX - EMIN) * (YB - Y0); }
+  var EXAG = ((YB - Y0) / (EMAX - EMIN)) / ((X1 - X0) / 360);
+
+  function wobble(a) { return 0.55 * Math.sin(a * 1.7) + 0.35 * Math.sin(a * 4.3 + 1) + 0.22 * Math.sin(a * 9.1 + 2) + 0.12 * Math.sin(a * 23.7); }
+  var ridge = [];
+  function buildRidge() {
+    ridge = [];
+    for (var a = -180; a <= 180.001; a += 0.25) ridge.push([Xp(a), Y(maskAt(a)) + wobble(a)]);
+  }
+  function terrainPath(c, dy) {
+    c.beginPath();
+    c.moveTo(ridge[0][0], H + 2);
+    for (var j = 0; j < ridge.length; j++) c.lineTo(ridge[j][0], ridge[j][1] + (dy || 0));
+    c.lineTo(ridge[ridge.length - 1][0], H + 2);
+    c.closePath();
+  }
+  function ridgeLine(c, dy) {
+    c.beginPath();
+    for (var j = 0; j < ridge.length; j++) { var p = ridge[j]; if (j) c.lineTo(p[0], p[1] + (dy || 0)); else c.moveTo(p[0], p[1] + (dy || 0)); }
+  }
+
+  function layer(draw) {
+    var cv = document.createElement("canvas");
+    cv.width = W * dpr; cv.height = H * dpr;
+    var c = cv.getContext("2d");
+    c.setTransform(dpr, 0, 0, dpr, 0, 0);
+    draw(c);
+    return cv;
+  }
+
+  function hatch(c, angleDeg, spacing, color, width, jitter, rand) {
+    var ang = angleDeg * R, dx = Math.cos(ang), dy = Math.sin(ang);
+    var nx = -dy, ny = dx, diag = Math.hypot(W, H);
+    c.strokeStyle = color; c.lineWidth = width; c.lineCap = "round";
+    for (var s = -diag; s < diag; s += spacing) {
+      var cx = W / 2 + nx * s, cy = H / 2 + ny * s;
+      var x1 = cx - dx * diag, y1 = cy - dy * diag, x2 = cx + dx * diag, y2 = cy + dy * diag;
+      var off = (rand() - 0.5) * jitter;
+      c.beginPath();
+      c.moveTo(x1, y1);
+      c.quadraticCurveTo(cx + nx * off * 6, cy + ny * off * 6, x2, y2);
+      c.stroke();
+    }
+  }
+
+  var paperL, darkL, lightL;
+  function buildLayers() {
+    var rand = rng(1610);
+    paperL = layer(function (c) {
+      c.fillStyle = PAPER; c.fillRect(0, 0, W, H);
+      for (var b = 0; b < 22; b++) {
+        var x = rand() * W, y = rand() * H, r = 120 + rand() * 260;
+        var g = c.createRadialGradient(x, y, 0, x, y, r);
+        g.addColorStop(0, "rgba(128, 92, 54, " + (0.03 + rand() * 0.05) + ")"); g.addColorStop(1, "rgba(128, 92, 54, 0)");
+        c.fillStyle = g; c.fillRect(0, 0, W, H);
+      }
+      c.lineWidth = 0.6;
+      for (var f = 0; f < 280; f++) {
+        var fx = rand() * W, fy = rand() * H, len = 6 + rand() * 18, an = rand() * Math.PI;
+        c.strokeStyle = "rgba(95, 66, 38, 0.07)";
+        c.beginPath(); c.moveTo(fx, fy);
+        c.quadraticCurveTo(fx + Math.cos(an) * len / 2 + rand() * 4, fy + Math.sin(an) * len / 2 + rand() * 4, fx + Math.cos(an) * len, fy + Math.sin(an) * len);
+        c.stroke();
+      }
+      for (var s = 0; s < 2400; s++) {
+        c.fillStyle = "rgba(70, 48, 28, " + (0.04 + rand() * 0.14) + ")";
+        c.beginPath(); c.arc(rand() * W, rand() * H, 0.3 + rand() * 0.7, 0, Math.PI * 2); c.fill();
+      }
+      var top = c.createLinearGradient(0, 0, 0, Y(4));
+      top.addColorStop(0, "rgba(62, 41, 24, 0.13)"); top.addColorStop(1, "rgba(62, 41, 24, 0)");
+      c.fillStyle = top; c.fillRect(0, 0, W, H);
+      // engraved stars: ink marks on paper, as in the old celestial atlases
+      for (var k = 0; k < 150; k++) {
+        var sx = X0 + rand() * (X1 - X0), az = invX(sx);
+        var top2 = Y(maskAt(az) + 1.2), sy = 18 + rand() * Math.max(0, top2 - 18);
+        if (sy > top2) continue;
+        var big = rand() < 0.1;
+        c.fillStyle = "rgba(42, 29, 18, " + (0.45 + rand() * 0.4) + ")";
+        c.beginPath(); c.arc(sx, sy, big ? 1.5 : 0.5 + rand() * 0.8, 0, Math.PI * 2); c.fill();
+        if (big) {
+          c.strokeStyle = "rgba(42, 29, 18, 0.7)"; c.lineWidth = 0.7;
+          c.beginPath(); c.moveTo(sx - 5, sy); c.lineTo(sx + 5, sy); c.moveTo(sx, sy - 5); c.lineTo(sx, sy + 5); c.stroke();
+        }
+      }
+      var v = c.createRadialGradient(W / 2, H / 2, H * 0.3, W / 2, H / 2, W * 0.62);
+      v.addColorStop(0, "rgba(80, 55, 30, 0)"); v.addColorStop(1, "rgba(80, 55, 30, 0.2)");
+      c.fillStyle = v; c.fillRect(0, 0, W, H);
+    });
+
+    darkL = layer(function (c) {
+      c.save(); terrainPath(c); c.clip();
+      c.fillStyle = "rgba(56, 37, 22, 0.92)"; c.fillRect(0, 0, W, H);
+      for (var b = 0; b < 30; b++) {
+        var x = rand() * W, y = Y(0) + rand() * 140, r = 40 + rand() * 160;
+        var g = c.createRadialGradient(x, y, 0, x, y, r);
+        var dark = rand() < 0.55;
+        g.addColorStop(0, dark ? "rgba(24, 15, 8, 0.32)" : "rgba(120, 86, 52, 0.22)"); g.addColorStop(1, "rgba(0, 0, 0, 0)");
+        c.fillStyle = g; c.fillRect(0, 0, W, H);
+      }
+      hatch(c, 62, 5, "rgba(20, 12, 6, 0.36)", 0.7, 1, rand);
+      hatch(c, -28, 7.5, "rgba(20, 12, 6, 0.22)", 0.6, 1, rand);
+      c.restore();
+      c.strokeStyle = "rgba(26, 17, 9, 0.95)"; c.lineWidth = 2.1; c.lineJoin = "round";
+      ridgeLine(c); c.stroke();
+    });
+
+    lightL = layer(function (c) {
+      c.save(); terrainPath(c); c.clip();
+      c.fillStyle = "#b9966b"; c.fillRect(0, 0, W, H);
+      for (var b = 0; b < 26; b++) {
+        var x = rand() * W, y = Y(0) + rand() * 120, r = 50 + rand() * 170;
+        var g = c.createRadialGradient(x, y, 0, x, y, r);
+        g.addColorStop(0, "rgba(240, 226, 198, 0.42)"); g.addColorStop(1, "rgba(240, 226, 198, 0)");
+        c.fillStyle = g; c.fillRect(0, 0, W, H);
+      }
+      var depth = c.createLinearGradient(0, Y(1), 0, H);
+      depth.addColorStop(0, "rgba(90, 60, 34, 0)"); depth.addColorStop(1, "rgba(90, 60, 34, 0.45)");
+      c.fillStyle = depth; c.fillRect(0, 0, W, H);
+      hatch(c, 62, 10, "rgba(70, 46, 26, 0.24)", 0.6, 1, rand);
+      c.restore();
+      c.strokeStyle = PAPER_HI; c.lineWidth = 3.2; c.lineJoin = "round";
+      ridgeLine(c, 2.2); c.stroke();
+      c.strokeStyle = "rgba(42, 29, 18, 0.9)"; c.lineWidth = 1.5;
+      ridgeLine(c); c.stroke();
+    });
+  }
+
+  function fellFont(size, italic) { return (italic ? "italic " : "") + size + 'px "IM Fell English", Georgia, serif'; }
+  function scFont(size) { return size + 'px "IM Fell English SC", "IM Fell English", Georgia, serif'; }
+
+  function drawSun(x, y, visible) {
+    var g = ctx.createRadialGradient(x, y, 0, x, y, 70);
+    g.addColorStop(0, "rgba(255, 249, 230, " + (visible ? 0.95 : 0.35) + ")"); g.addColorStop(1, "rgba(255, 249, 230, 0)");
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, 70, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = INK; ctx.lineCap = "round";
+    for (var k = 0; k < 16; k++) {
+      var an = k * Math.PI / 8 + 0.12, r1 = 14, r2 = k % 2 ? 20 : 26;
+      ctx.lineWidth = k % 2 ? 0.9 : 1.2;
+      ctx.beginPath(); ctx.moveTo(x + Math.cos(an) * r1, y + Math.sin(an) * r1); ctx.lineTo(x + Math.cos(an) * r2, y + Math.sin(an) * r2); ctx.stroke();
+    }
+    ctx.fillStyle = PAPER_HI; ctx.beginPath(); ctx.arc(x, y, 10.5, 0, Math.PI * 2); ctx.fill();
+    ctx.lineWidth = 1.3; ctx.stroke();
+  }
+
+  function drawEarth(x, y, illum, sunRight) {
+    var r = 9.5;
+    ctx.save(); ctx.translate(x, y); if (!sunRight) ctx.scale(-1, 1);
+    ctx.fillStyle = EARTH; ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = PAPER_HI; ctx.beginPath();
+    ctx.arc(0, 0, r, -Math.PI / 2, Math.PI / 2, false);
+    ctx.ellipse(0, 0, r * Math.abs(1 - 2 * illum), r, 0, Math.PI / 2, -Math.PI / 2, illum < 0.5);
+    ctx.fill();
+    ctx.strokeStyle = INK; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2); ctx.stroke();
+    ctx.restore();
+  }
+
+  var state = { t: 6.2, playing: true };
+  var readout = document.getElementById("readout");
+  var slider = document.getElementById("day");
+  var playBtn = document.getElementById("play");
+
+  function draw() {
+    var t = state.t, sun = sunAt(t), earth = earthAt(t);
+    var sunVis = sun.el > maskAt(sun.az), earthVis = earth.el > maskAt(earth.az);
+    ctx.clearRect(0, 0, W, H);
+    ctx.drawImage(paperL, 0, 0, W, H);
+
+    if (!sunVis) { ctx.fillStyle = "rgba(48, 32, 19, 0.2)"; ctx.fillRect(0, 0, W, H); }
+
+    // elevation scale in the margin
+    ctx.fillStyle = "rgba(42, 29, 18, 0.65)"; ctx.font = fellFont(14, false); ctx.textAlign = "right";
+    [0, 3, 6, 9].forEach(function (e) {
+      ctx.fillText((e ? "+" : "") + e + "°", X0 - 12, Y(e) + 5);
+      ctx.strokeStyle = "rgba(42, 29, 18, 0.45)"; ctx.lineWidth = 0.8;
+      ctx.beginPath(); ctx.moveTo(X0 - 8, Y(e)); ctx.lineTo(X0 - 2, Y(e)); ctx.stroke();
+    });
+    ctx.setLineDash([1, 6]); ctx.strokeStyle = "rgba(42, 29, 18, 0.35)"; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(X0, Y(0)); ctx.lineTo(X1, Y(0)); ctx.stroke();
+
+    // paths: the sun's full circuit and the earth's libration loop
+    ctx.setLineDash([1.4, 5]); ctx.strokeStyle = "rgba(42, 29, 18, 0.6)"; ctx.lineWidth = 1.3;
+    function trackPath(list) {
+      ctx.beginPath();
+      for (var k = 0; k < list.length; k++) {
+        var x = X(list[k].az), y = Y(list[k].el);
+        if (k === 0 || Math.abs(wrap180(list[k].az - list[k - 1].az)) > 90 || Math.abs(x - X(list[k - 1].az)) > (X1 - X0) / 2) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+    }
+    if (tracks) {
+      trackPath(tracks.sun);
+      ctx.setLineDash([5, 5]); ctx.strokeStyle = "rgba(62, 81, 104, 0.55)";
+      trackPath(tracks.earth);
+    } else {
+      ctx.beginPath();
+      for (var a = -180; a <= 180; a += 1) { var e = 0.85 + 0.8 * Math.cos(a * R); if (a === -180) ctx.moveTo(Xp(a), Y(e)); else ctx.lineTo(Xp(a), Y(e)); }
+      ctx.stroke();
+      ctx.setLineDash([5, 5]); ctx.strokeStyle = "rgba(62, 81, 104, 0.55)";
+      ctx.beginPath();
+      for (var p = 0; p <= 2 * Math.PI + 0.02; p += 0.04) {
+        var ea = 7.5 * Math.sin(p), ee = 0.8 + 6.5 * Math.sin(p + 0.8);
+        if (p === 0) ctx.moveTo(X(ea), Y(ee)); else ctx.lineTo(X(ea), Y(ee));
+      }
+      ctx.stroke();
+    }
+    ctx.setLineDash([]);
+
+    // bodies, drawn before the terrain so the hills hide them
+    var sx = X(sun.az), sy = Y(sun.el), ex = X(earth.az), ey = Y(earth.el);
+    drawSun(sx, sy, sunVis);
+    var sep = Math.abs(wrap180(sun.az - earth.az)) * R;
+    drawEarth(ex, ey, (1 - Math.cos(sep)) / 2, wrap180(sun.az - earth.az) > 0);
+
+    // terrain: shadowed wash first, then the front-lit layer strip by strip
+    ctx.drawImage(darkL, 0, 0, W, H);
+    var s = Math.max(0, Math.min(1, (sun.el + 0.3) / 0.9));
+    if (s > 0) {
+      for (var xs = X0 - 4; xs < X1 + 4; xs += 3) {
+        var az = invX(xs + 1.5);
+        var lit = s * Math.max(0, -Math.cos((az - wrap180(sun.az)) * R));
+        if (lit < 0.03) continue;
+        ctx.globalAlpha = Math.pow(lit, 0.8);
+        ctx.drawImage(lightL, xs * dpr, 0, 3 * dpr, H * dpr, xs, 0, 3, H);
+      }
+      ctx.globalAlpha = 1;
+    }
+
+    // labels
+    ctx.textAlign = "left"; ctx.fillStyle = INK;
+    if (sy < Y(maskAt(sun.az)) + 2) { ctx.font = fellFont(16, true); ctx.fillText("Sun", sx + 24, sy - 18); }
+    if (ey < Y(maskAt(earth.az)) + 2) { ctx.font = fellFont(16, true); ctx.fillText("Earth", ex + 16, ey - 12); }
+    ctx.font = fellFont(22, true); ctx.fillText("The horizon at a south-polar site", X0, 38);
+    ctx.font = scFont(14); ctx.fillStyle = "rgba(42, 29, 18, 0.75)";
+    ctx.fillText((realMask ? "LOLA horizon" : "illustrative silhouette") + " · " + (tracks ? "ephemeris tracks" : "illustrative lunar day") + " · vertical scale ×" + EXAG.toFixed(1), X0, 58);
+    ctx.textAlign = "right"; ctx.fillStyle = INK; ctx.font = fellFont(20, false);
+    ctx.fillText("Day " + t.toFixed(1) + " of " + SPAN.toFixed(1), X1, 38);
+    ctx.font = scFont(14); ctx.fillStyle = "rgba(42, 29, 18, 0.75)";
+    ctx.fillText(sunVis ? "the sun shines on the site" : "the site lies in shadow", X1, 58);
+
+    // compass letters on the wash
+    ctx.textAlign = "center"; ctx.font = scFont(17); ctx.fillStyle = "rgba(248, 239, 218, 0.88)";
+    [[-180, "S"], [-90, "W"], [0, "N"], [90, "E"], [180, "S"]].forEach(function (c) {
+      var x = c[0] === -180 ? X0 + 12 : c[0] === 180 ? X1 - 12 : X(c[0]);
+      ctx.fillText(c[1], x, H - 26);
+      ctx.strokeStyle = "rgba(248, 239, 218, 0.6)"; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(x, H - 46); ctx.lineTo(x, H - 40); ctx.stroke();
+    });
+
+    readout.innerHTML =
+      "<span>Sun: <b>" + sun.el.toFixed(2) + "°</b>, azimuth <b>" + sun.az.toFixed(0) + "°</b> · " + (sunVis ? '<span class="on">power on</span>' : "behind terrain") + "</span>" +
+      "<span>Earth: <b>" + earth.el.toFixed(1) + "°</b>, azimuth <b>" + earth.az.toFixed(0) + "°</b> · " + (earthVis ? '<span class="on">link on</span>' : "below horizon") + "</span>";
+  }
+
+  var last = null;
+  function frame(ts) {
+    if (state.playing) {
+      if (last !== null) {
+        state.t += (ts - last) / 1000 * (LUNAR_DAY / 24);
+        if (state.t >= SPAN) state.t -= SPAN;
+        slider.value = state.t.toFixed(2);
+      }
+      last = ts;
+      draw();
+    } else { last = null; }
+    requestAnimationFrame(frame);
+  }
+
+  function setPlaying(on) {
+    state.playing = on;
+    playBtn.textContent = on ? "Pause" : "Play";
+    playBtn.setAttribute("aria-pressed", on ? "true" : "false");
+  }
+  playBtn.addEventListener("click", function () { setPlaying(!state.playing); });
+  slider.addEventListener("input", function () { state.t = parseFloat(slider.value) || 0; draw(); });
+
+  window.setHorizonMask = function (arr) {
+    if (!arr || arr.length !== 720) throw new Error("setHorizonMask expects 720 values, azimuth 0..359.5 deg in 0.5 deg steps");
+    for (var k = 0; k < 720; k++) mask[k] = +arr[k];
+    realMask = true;
+    buildRidge(); buildLayers(); draw();
+  };
+
+  // tracks: {sun: [{t, az, alt}], earth: [...]}; t is an ISO time or a number of days; alt may be named el
+  window.setTracks = function (obj) {
+    function norm(list) {
+      if (!list || list.length < 2) throw new Error("setTracks expects at least two points per body");
+      var t0 = null;
+      return list.map(function (p) {
+        var tv = p.t !== undefined ? p.t : (p.time !== undefined ? p.time : p.utc);
+        var days = typeof tv === "number" ? tv : Date.parse(tv) / 86400000;
+        if (t0 === null) t0 = days;
+        return { t: days - t0, az: +p.az, el: +(p.alt !== undefined ? p.alt : p.el) };
+      });
+    }
+    var sun = norm(obj.sun), earth = norm(obj.earth);
+    tracks = { sun: sun, earth: earth };
+    SPAN = Math.max(sun[sun.length - 1].t, earth[earth.length - 1].t);
+    slider.max = SPAN.toFixed(2); state.t = 0; slider.value = "0";
+    draw();
+  };
+
+  buildRidge(); buildLayers();
+  var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  setPlaying(!reduce);
+  draw();
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(draw);
+  requestAnimationFrame(frame);
+})();
+</script>

@@ -1,0 +1,9 @@
+# Large downloads: rebuild with `python scripts/fetch_terrain.py` (see data/SOURCES.md)
+data/dem/
+data/reference/
+
+# Computed caches
+cache/
+__pycache__/
+*.pyc
+.pytest_cache/

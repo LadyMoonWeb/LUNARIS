@@ -1,0 +1,9 @@
+# Runtime dependencies of the app (enough for Streamlit Community Cloud).
+# Tested with Python 3.13. Tools for rebuilding data and for validation are in requirements-dev.txt.
+skyfield>=1.55
+numpy
+pandas>=2.3
+pyarrow>=26.0
+streamlit>=1.67
+plotly>=7.1
+pillow>=11.3

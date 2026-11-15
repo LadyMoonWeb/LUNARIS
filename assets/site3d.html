@@ -1,0 +1,457 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Site: terrain in 3D</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Ink-and-hatching plate: paper and ink as in the Galileo horizon plate. */
+:root { --paper: #efe3c8; --edge: #b9a27c; --ink: #2a1d12; --muted: #6b5a47; --bg: #17130f; --text: #ece3d2; --accent: #d39a5c;
+        --ok: #4f7a3a; --bad: #a03a2a; --sun: #8a5a2b; --earth: #56697e; }
+* { box-sizing: border-box; }
+body { margin: 0; padding: 0 2px 4px; overflow-x: hidden; background: var(--bg); color: var(--text); font: 13px "IBM Plex Mono", ui-monospace, Consolas, monospace; }
+#stage { position: relative; width: 100%; height: 520px; background: var(--paper); border-radius: 4px; overflow: hidden;
+         box-shadow: 0 0 0 1px var(--edge); cursor: grab; touch-action: none; }
+#stage:active { cursor: grabbing; }
+canvas { display: block; }
+.label { position: absolute; z-index: 2; transform: translate(-50%, -100%); padding-bottom: 6px; pointer-events: none; white-space: nowrap;
+         font: italic 19px "IM Fell English", Georgia, serif; color: var(--ink); text-align: center;
+         text-shadow: 0 0 4px var(--paper), 0 0 4px var(--paper), 0 0 2px var(--paper); }
+.label small { display: block; font: 12px "IBM Plex Mono", ui-monospace, monospace; color: var(--muted); }
+.box { position: absolute; z-index: 5; background: rgba(248, 239, 218, 0.92); border: 1px solid var(--edge); border-radius: 4px; color: var(--ink);
+       padding: 6px 9px; font-size: 11.5px; line-height: 1.38; pointer-events: none; }
+#title { left: 10px; top: 10px; font: italic 19px "IM Fell English", Georgia, serif; max-width: calc(100% - 272px); }
+#title small { display: block; font: 12px "IBM Plex Mono", ui-monospace, monospace; color: var(--muted); font-style: normal; }
+#card { right: 10px; top: 10px; width: min(244px, 48%); }
+#card b { font-weight: 500; }
+#card h3 { margin: 0 0 4px; font: italic 17px "IM Fell English", Georgia, serif; }
+#card .v { display: inline-block; margin-top: 4px; padding: 2px 8px; border: 1px solid var(--ink); border-radius: 999px; font-weight: 500; }
+#legend { left: 12px; bottom: 10px; max-width: 60%; }
+.sw { display: inline-block; width: 22px; height: 10px; margin: 0 5px -1px 10px; border: 1px solid var(--ink); }
+#strip { position: relative; margin-top: 10px; cursor: pointer; }
+#bars { width: 100%; height: 46px; display: block; border-radius: 4px; }
+#bar, #tools { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; padding: 6px 2px 2px; }
+button { font: 500 13px "IBM Plex Mono", ui-monospace, monospace; color: var(--text); background: #211b15; border: 1px solid #3a3027;
+         border-radius: 6px; padding: 6px 11px; cursor: pointer; }
+button:hover { border-color: var(--accent); }
+button[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+#time { flex: 1 1 260px; accent-color: var(--accent); }
+#radius { width: 115px; accent-color: var(--accent); }
+.grp { display: inline-flex; align-items: center; gap: 6px; color: #ad9d86; }
+#read { flex: 1 1 100%; color: #ad9d86; font-variant-numeric: tabular-nums; }
+#read b, #safe b { color: var(--text); font-weight: 500; }
+#fail { padding: 24px; color: var(--ink); font: 16px "IM Fell English", Georgia, serif; }
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="title" class="box"></div>
+  <div id="card" class="box"></div>
+  <div id="legend" class="box"></div>
+</div>
+<div id="strip"><canvas id="bars" height="46"></canvas></div>
+<div id="bar">
+  <button id="play" type="button" aria-pressed="false">Play</button>
+  <input id="time" type="range" min="0" max="1" step="1" value="0" aria-label="Time since the start of the period, hours">
+  <div id="read" aria-live="polite"></div>
+</div>
+<div id="tools">
+  <span class="grp">Heights <button data-ex="1" type="button">&times;1</button><button data-ex="2" type="button">&times;2</button><button data-ex="4" type="button">&times;4</button></span>
+  <span class="grp">Colour <button data-mode="0" type="button">illumination</button><button data-mode="1" type="button">elevation</button><button data-mode="2" type="button">slope</button></span>
+  <span class="grp">Lander <button data-pose="up" type="button">upright</button><button data-pose="side" type="button">on its side</button></span>
+  <span class="grp">Zoom <button id="zin" type="button" aria-label="Zoom in">+</button><button id="zout" type="button" aria-label="Zoom out">&minus;</button></span>
+  <span class="grp">Landing ellipse <input id="radius" type="range" min="50" max="500" step="10" value="200" aria-label="Landing ellipse radius, metres"><span id="safe"></span></span>
+</div>
+<script>window.SITE3D = /*__DATA__*/null; window.SITE3D_RUN = /*__RUN__*/null;</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(function () {
+  "use strict";
+  var D = window.SITE3D, RUN = window.SITE3D_RUN, stage = document.getElementById("stage");
+  if (!D || !RUN || !window.THREE) {
+    var fail = document.createElement("div");
+    fail.id = "fail";
+    fail.textContent = (!D || !RUN) ? "The site data is missing. Run scripts/build_site3d.py." :
+      "The 3D library could not be loaded (no internet connection to cdnjs.cloudflare.com).";
+    stage.appendChild(fail);
+    return;
+  }
+  var RAD = Math.PI / 180, SUN_RADIUS = 0.265, LANDER_SCALE = 30, DOME = 1250;
+  var n = D.mesh_n, step = D.mesh_step_m, half = D.half_m, T = RUN.sun.length;
+  var EX = 2, mode = 0, pose = "up", radius = 200, picked = { e: 0, n: 0 };
+
+  // ---------- terrain heights (metres above the lowest point of the patch) ----------
+  var H = new Float32Array(n * n), i, r, c, k;
+  for (i = 0; i < n * n; i++) H[i] = D.heights_dm[i] / 10;
+  var mid = (n - 1) / 2, H0 = H[mid * n + mid], HR = Math.max(1, D.height_range_m);
+  function cellOf(e, nn) {
+    return [Math.max(0, Math.min(n - 1, Math.round((half - nn) / step))), Math.max(0, Math.min(n - 1, Math.round((e + half) / step)))];
+  }
+  function realHeight(e, nn) { var p = cellOf(e, nn); return H[p[0] * n + p[1]] - H0; }
+  function ground(e, nn) { return realHeight(e, nn) * EX; }
+
+  // ---------- per-cell horizons: [azimuth][row][col], one byte each ----------
+  var hz = D.horizon, hn = hz.n, hA = hz.azimuths, raw = atob(hz.b64), HZ = new Uint8Array(raw.length);
+  for (i = 0; i < raw.length; i++) HZ[i] = raw.charCodeAt(i);
+  function azBin(az) { var a = ((az % 360) + 360) % 360 / (360 / hA), a0 = Math.floor(a) % hA; return [a0, (a0 + 1) % hA, a - Math.floor(a)]; }
+  var sunBin = [], earthBin = [];
+  for (i = 0; i < T; i++) { sunBin.push(azBin(RUN.sun[i][0])); earthBin.push(azBin(RUN.earth[i][0])); }
+  function hzCell(hr, hc, bin) {   // horizon of one 40 m cell toward an azimuth
+    var o = hr * hn + hc;
+    return (HZ[bin[0] * hn * hn + o] * (1 - bin[2]) + HZ[bin[1] * hn * hn + o] * bin[2]) * hz.scale_deg + hz.offset_deg;
+  }
+  function hzCellOf(e, nn) {
+    return [Math.max(0, Math.min(hn - 1, Math.round((half - nn) / hz.step_m))), Math.max(0, Math.min(hn - 1, Math.round((e + half) / hz.step_m)))];
+  }
+  function disc(clearance) {
+    var s = clearance / SUN_RADIUS;
+    return s <= -1 ? 0 : s >= 1 ? 1 : (Math.acos(-s) + s * Math.sqrt(1 - s * s)) / Math.PI;
+  }
+  // Numbers for one cell over the whole period, from the cell horizons.
+  function cellStats(hr, hc) {
+    var sun = 0, comm = 0, both = 0, run = 0, best = 0;
+    for (var t = 0; t < T; t++) {
+      var s = disc(RUN.sun[t][1] - hzCell(hr, hc, sunBin[t])) > 0.5, e = RUN.earth[t][1] > hzCell(hr, hc, earthBin[t]);
+      if (s) sun++; if (e) comm++;
+      if (s && e) { both++; run++; if (run > best) best = run; } else run = 0;
+    }
+    var d = RUN.step_hours / 24;
+    return { sun: sun * d, comm: comm * d, both: both * d, longest: Math.max(0, best - 1) * d };
+  }
+  function verdict(longest) {
+    if (RUN.period_days < RUN.req_min) return ["N/A: period shorter than requirement", "var(--muted)"];
+    if (longest >= RUN.req_full) return ["✔ Meets " + RUN.req_min + "–" + RUN.req_full + " days", "var(--ok)"];
+    if (longest >= RUN.req_min) return ["▲ Marginal", "var(--sun)"];
+    return ["✖ Does not meet " + RUN.req_min + "–" + RUN.req_full + " days", "var(--bad)"];
+  }
+
+  // ---------- geometry ----------
+  var N = n * n, pos = new Float32Array(N * 3), slopeE = new Float32Array(N), slopeN = new Float32Array(N);
+  var lit = new Float32Array(N), shade = new Float32Array(N), elev = new Float32Array(N), slope = new Float32Array(N), zone = new Float32Array(N);
+  var vr = new Int16Array(N), vc = new Int16Array(N), vfr = new Float32Array(N), vfc = new Float32Array(N);
+  for (r = 0; r < n; r++) for (c = 0; c < n; c++) {
+    k = r * n + c;
+    var cw = Math.max(0, c - 1), ce = Math.min(n - 1, c + 1), rn = Math.max(0, r - 1), rs = Math.min(n - 1, r + 1);
+    slopeE[k] = (H[r * n + ce] - H[r * n + cw]) / ((ce - cw) * step);
+    slopeN[k] = (H[rn * n + c] - H[rs * n + c]) / ((rs - rn) * step);
+    elev[k] = H[k] / HR;
+    slope[k] = Math.min(1, Math.atan(Math.hypot(slopeE[k], slopeN[k])) / RAD / 30);   // 1 = 30 degrees or steeper
+    var fr = r * step / hz.step_m, fc = c * step / hz.step_m, r0 = Math.min(hn - 2, Math.floor(fr)), c0 = Math.min(hn - 2, Math.floor(fc));
+    vr[k] = r0; vc[k] = c0; vfr[k] = fr - r0; vfc[k] = fc - c0;
+  }
+  function fillPositions() {
+    for (var r = 0; r < n; r++) for (var c = 0; c < n; c++) {
+      var k = r * n + c;
+      pos[3 * k] = -half + c * step; pos[3 * k + 1] = (H[k] - H0) * EX; pos[3 * k + 2] = -(half - r * step);
+    }
+  }
+  fillPositions();
+  var index = new Uint32Array((n - 1) * (n - 1) * 6), q = 0;
+  for (r = 0; r < n - 1; r++) for (c = 0; c < n - 1; c++) {
+    var a = r * n + c, b = a + 1, d = a + n, f = d + 1;
+    index[q++] = a; index[q++] = d; index[q++] = b; index[q++] = b; index[q++] = d; index[q++] = f;
+  }
+  var geometry = new THREE.BufferGeometry();
+  geometry.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+  [["lit", lit], ["shade", shade], ["elev", elev], ["slope", slope], ["zone", zone]].forEach(function (p) {
+    geometry.setAttribute(p[0], new THREE.BufferAttribute(p[1], 1));
+  });
+  geometry.setIndex(new THREE.BufferAttribute(index, 1));
+  var material = new THREE.ShaderMaterial({
+    side: THREE.DoubleSide, extensions: { derivatives: true },
+    uniforms: { uContour: { value: 10 * EX }, uMode: { value: 0 } },
+    vertexShader: [
+      "attribute float lit; attribute float shade; attribute float elev; attribute float slope; attribute float zone;",
+      "varying float vLit; varying float vShade; varying float vH; varying float vElev; varying float vSlope; varying float vZone;",
+      "void main() { vLit = lit; vShade = shade; vH = position.y; vElev = elev; vSlope = slope; vZone = zone;",
+      "  gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }"
+    ].join("\n"),
+    fragmentShader: [
+      "uniform float uContour; uniform float uMode;",
+      "varying float vLit; varying float vShade; varying float vH; varying float vElev; varying float vSlope; varying float vZone;",
+      "void main() {",
+      "  vec3 paper = vec3(0.973, 0.937, 0.855); vec3 wash = vec3(0.725, 0.588, 0.42);",
+      "  vec3 dark = vec3(0.30, 0.20, 0.12); vec3 ink = vec3(0.165, 0.114, 0.071);",
+      "  vec3 col; float dk;",
+      "  if (uMode < 0.5) { col = mix(dark, mix(wash, paper, vShade), vLit); dk = 1.0 - clamp(vLit * vShade, 0.0, 1.0); }",
+      "  else if (uMode < 1.5) { col = mix(wash * 0.8, paper, vElev); dk = (1.0 - vElev) * 0.55; }",
+      "  else { col = mix(paper, vec3(0.55, 0.33, 0.20), vSlope); dk = vSlope * 0.95; }",
+      "  vec2 p = gl_FragCoord.xy;",
+      "  float a1 = abs(fract((p.x + p.y) / 7.0) - 0.5) * 2.0;",
+      "  float a2 = abs(fract((p.x - p.y) / 9.0) - 0.5) * 2.0;",
+      "  float l1 = (1.0 - smoothstep(dk * 0.5, dk * 0.5 + 0.14, a1)) * smoothstep(0.10, 0.32, dk);",
+      "  float l2 = (1.0 - smoothstep((dk - 0.55) * 0.9, (dk - 0.55) * 0.9 + 0.14, a2)) * step(0.55, dk);",
+      "  float amount = max(l1 * 0.5, l2 * 0.7);",
+      "  if (vZone > 1.5) { col = mix(col, vec3(0.63, 0.23, 0.16), 0.55); amount = max(amount, (1.0 - smoothstep(0.25, 0.4, a2)) * 0.6); }",
+      "  else if (vZone > 0.5) { col = mix(col, vec3(0.45, 0.60, 0.33), 0.55); }",
+      "  float cc = vH / uContour; float w = fwidth(cc);",
+      "  amount = max(amount, (1.0 - smoothstep(0.0, w * 1.4, abs(fract(cc - 0.5) - 0.5))) * 0.32);",
+      "  gl_FragColor = vec4(mix(col, ink, amount), 1.0);",
+      "}"
+    ].join("\n")
+  });
+  var scene = new THREE.Scene(), mesh = new THREE.Mesh(geometry, material);
+  scene.add(mesh);
+  var renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
+  renderer.setClearColor(0xefe3c8, 1);
+  stage.insertBefore(renderer.domElement, stage.firstChild);
+  var camera = new THREE.PerspectiveCamera(34, 2, 10, 40000);
+  var view = { radius: 5600, polar: 56 * RAD, around: 22 * RAD };   // camera in the south-south-east: north is far
+
+  // ---------- labels (pushed apart when they would overlap) ----------
+  var labels = [];
+  function addLabel(html) {
+    var el = document.createElement("div");
+    el.className = "label"; el.innerHTML = html; stage.appendChild(el);
+    var item = { el: el, v: new THREE.Vector3() }; labels.push(item); return item;
+  }
+  function vec(e, nn, up) { return new THREE.Vector3(e, ground(e, nn) + (up || 0), -nn); }
+  var inkLine = new THREE.LineBasicMaterial({ color: 0x2a1d12 }), dyn = new THREE.Group();
+  scene.add(dyn);
+  function line(points, mat) { return new THREE.Line(new THREE.BufferGeometry().setFromPoints(points), mat || inkLine); }
+
+  var markLabels = D.marks.map(function (m) { return addLabel(m.name + (m.note ? "<small>" + m.note + "</small>" : "")); });
+  var northLabel = addLabel("N"), scaleLabel = addLabel("<small>500 m</small>");
+  var sunLabel = addLabel("Sun"), earthLabel = addLabel("Earth"), pickLabel = addLabel("");
+  var sunBall = new THREE.Mesh(new THREE.SphereGeometry(42, 16, 10), new THREE.MeshBasicMaterial({ color: 0xf8efda }));
+  var sunRing = new THREE.Mesh(new THREE.SphereGeometry(47, 16, 10), new THREE.MeshBasicMaterial({ color: 0x2a1d12, side: THREE.BackSide }));
+  var earthBall = new THREE.Mesh(new THREE.SphereGeometry(36, 16, 10), new THREE.MeshBasicMaterial({ color: 0x56697e }));
+  var okMat = new THREE.LineBasicMaterial({ color: 0x4f7a3a }), badMat = new THREE.LineBasicMaterial({ color: 0xa03a2a });
+  var sunMat = new THREE.LineBasicMaterial({ color: 0x8a5a2b });
+  var staticGroup = new THREE.Group(); scene.add(staticGroup);
+
+  // lander: a hexagonal body with seven panels, drawn LANDER_SCALE times larger than life
+  var hatchCanvas = document.createElement("canvas"); hatchCanvas.width = hatchCanvas.height = 32;
+  (function () {
+    var g = hatchCanvas.getContext("2d"); g.fillStyle = "#6b4a2c"; g.fillRect(0, 0, 32, 32); g.strokeStyle = "#2a1d12"; g.lineWidth = 3;
+    for (var s = -32; s < 64; s += 8) { g.beginPath(); g.moveTo(s, 0); g.lineTo(s + 32, 32); g.stroke(); }
+  })();
+  var hatchTex = new THREE.CanvasTexture(hatchCanvas); hatchTex.wrapS = hatchTex.wrapT = THREE.RepeatWrapping; hatchTex.repeat.set(2, 4);
+  var lander = new THREE.Group(), faces = [];
+  (function () {
+    var rad = 0.8 * LANDER_SCALE, hgt = 4 * LANDER_SCALE;
+    function panel(geom, normal) {
+      var m = new THREE.Mesh(geom, new THREE.MeshBasicMaterial({ color: 0xf8efda, side: THREE.DoubleSide }));
+      lander.add(m); faces.push({ mesh: m, normal: normal });
+      var edges = new THREE.LineSegments(new THREE.EdgesGeometry(geom), inkLine); lander.add(edges);
+    }
+    for (var j = 0; j < 6; j++) {
+      var a0 = (j * 60 - 30) * RAD, a1 = (j * 60 + 30) * RAD, am = j * 60 * RAD;   // face j looks toward azimuth j * 60
+      var p0 = [Math.sin(a0) * rad, -Math.cos(a0) * rad], p1 = [Math.sin(a1) * rad, -Math.cos(a1) * rad];
+      var g = new THREE.BufferGeometry();
+      g.setAttribute("position", new THREE.BufferAttribute(new Float32Array([p0[0], 0, p0[1], p1[0], 0, p1[1], p1[0], hgt, p1[1], p0[0], hgt, p0[1]]), 3));
+      g.setAttribute("uv", new THREE.BufferAttribute(new Float32Array([0, 0, 1, 0, 1, 1, 0, 1]), 2));
+      g.setIndex([0, 1, 2, 0, 2, 3]);
+      panel(g, new THREE.Vector3(Math.sin(am), 0, -Math.cos(am)));
+    }
+    var top = new THREE.CircleGeometry(rad, 6); top.rotateX(-Math.PI / 2); top.translate(0, hgt, 0);
+    panel(top, new THREE.Vector3(0, 1, 0));
+  })();
+  scene.add(lander);
+
+  function direction(az, alt) {   // unit vector: x east, y up (stretched like the terrain), z south
+    var v = new THREE.Vector3(Math.cos(alt * RAD) * Math.sin(az * RAD), Math.sin(alt * RAD) * EX, -Math.cos(alt * RAD) * Math.cos(az * RAD));
+    return v.normalize();
+  }
+
+  // ---------- things that depend on the stretch or on the picked point ----------
+  function rebuildStatic() {
+    while (staticGroup.children.length) staticGroup.remove(staticGroup.children[0]);
+    D.marks.forEach(function (m, j) {
+      staticGroup.add(line([vec(m.e, m.n), vec(m.e, m.n, 170)]));
+      markLabels[j].v.copy(vec(m.e, m.n, 185));
+    });
+    var edge = [[-half, half], [half, half], [half, -half], [-half, -half], [-half, half]].map(function (p) { return vec(p[0], p[1], 2); });
+    staticGroup.add(line(edge));
+    // north arrow at the north-east corner, scale bar along the south edge
+    staticGroup.add(new THREE.ArrowHelper(new THREE.Vector3(0, 0, -1), vec(half - 120, half - 420, 30), 360, 0x2a1d12, 110, 60));
+    northLabel.v.copy(vec(half - 120, half - 20, 60));
+    staticGroup.add(line([vec(-half + 80, -half - 60, 6), vec(-half + 580, -half - 60, 6)]));
+    staticGroup.add(line([vec(-half + 80, -half - 30, 6), vec(-half + 80, -half - 90, 6)]));
+    staticGroup.add(line([vec(-half + 580, -half - 30, 6), vec(-half + 580, -half - 90, 6)]));
+    scaleLabel.v.copy(vec(-half + 330, -half - 60, 30));
+  }
+  var pickedStats = null;
+  function applyPick() {
+    var hc = hzCellOf(picked.e, picked.n), safeCells = 0, cells = 0, cache = {};
+    pickedStats = cellStats(hc[0], hc[1]);
+    for (var k = 0; k < N; k++) {
+      var e = pos[3 * k], nn = -pos[3 * k + 2];
+      if (Math.hypot(e - picked.e, nn - picked.n) > radius) { zone[k] = 0; continue; }
+      var cell = hzCellOf(e, nn), id = cell[0] * hn + cell[1];
+      if (cache[id] === undefined) { cache[id] = cellStats(cell[0], cell[1]).longest >= RUN.req_min; cells++; if (cache[id]) safeCells++; }
+      zone[k] = cache[id] ? 1 : 2;
+    }
+    geometry.attributes.zone.needsUpdate = true;
+    var v = verdict(pickedStats.longest), share = cells ? Math.round(100 * safeCells / cells) : 0;
+    document.getElementById("safe").innerHTML = "<b>" + radius + " m</b> radius · safe area <b>" + share + " %</b>";
+    document.getElementById("card").innerHTML =
+      "<h3>Selected point</h3>" + Math.round(picked.e) + " m east, " + Math.round(picked.n) + " m north of the site, " +
+      (realHeight(picked.e, picked.n) >= 0 ? "+" : "") + realHeight(picked.e, picked.n).toFixed(0) + " m<br>" +
+      "Sun <b>" + pickedStats.sun.toFixed(1) + " d</b> · comm <b>" + pickedStats.comm.toFixed(1) + " d</b> of " + RUN.period_days + " d<br>" +
+      "Sun and comm together <b>" + pickedStats.both.toFixed(1) + " d</b>, longest stretch <b>" + pickedStats.longest.toFixed(1) + " d</b><br>" +
+      '<span class="v" style="border-color:' + v[1] + ";color:" + v[1] + '">' + v[0] + "</span><br>" +
+      "<small>Ellipse " + radius + " m: " + share + " % ≥ " + RUN.req_min + " d (36-dir cell horizons, eye " +
+      hz.eye_m + " m). Click terrain to move.</small>";
+    pickLabel.el.innerHTML = Math.hypot(picked.e, picked.n) < 30 ? "" : "<small>selected point</small>";
+  }
+
+  // ---------- per-frame state ----------
+  var slider = document.getElementById("time"), read = document.getElementById("read"), bars = document.getElementById("bars");
+  slider.max = T - 1;
+  var startMs = Date.parse(RUN.start_utc);
+  function drawBars(t) {
+    var w = bars.clientWidth, h = 46, g = bars.getContext("2d");
+    if (bars.width !== w) bars.width = w;
+    g.fillStyle = "#211b15"; g.fillRect(0, 0, w, h);
+    [[RUN.sun_up, "#d39a5c", 4, "Sun (panels " + RUN.panel_height_m + " m)"], [RUN.earth_up, "#7f97b3", 25, "Comm (antenna " + RUN.antenna_height_m + " m)"]].forEach(function (row) {
+      g.fillStyle = row[1];
+      for (var i = 0; i < T; i++) if (row[0][i]) g.fillRect(i / T * w, row[2], Math.ceil(w / T), 17);
+      g.fillStyle = "#17130f"; g.font = "500 11px IBM Plex Mono, monospace"; g.fillText(row[3], 6, row[2] + 13);
+    });
+    g.fillStyle = "#ece3d2"; g.fillRect(t / (T - 1) * (w - 2), 0, 2, h);
+  }
+  function update() {
+    var t = parseInt(slider.value, 10) || 0, sun = RUN.sun[t], earth = RUN.earth[t], sb = sunBin[t];
+    var se = Math.cos(sun[1] * RAD) * Math.sin(sun[0] * RAD), sn = Math.cos(sun[1] * RAD) * Math.cos(sun[0] * RAD);
+    for (var k = 0; k < N; k++) {
+      var o = vr[k] * hn + vc[k], b0 = sb[0] * hn * hn, b1 = sb[1] * hn * hn;
+      function at(base) {
+        var top = HZ[base + o] * (1 - vfc[k]) + HZ[base + o + 1] * vfc[k], bot = HZ[base + o + hn] * (1 - vfc[k]) + HZ[base + o + hn + 1] * vfc[k];
+        return top * (1 - vfr[k]) + bot * vfr[k];
+      }
+      lit[k] = disc(sun[1] - ((at(b0) * (1 - sb[2]) + at(b1) * sb[2]) * hz.scale_deg + hz.offset_deg));
+      shade[k] = Math.max(0.12, Math.min(1, 0.6 + 3.2 * (slopeE[k] * se + slopeN[k] * sn)));
+    }
+    geometry.attributes.lit.needsUpdate = true; geometry.attributes.shade.needsUpdate = true;
+
+    // sky dome over the picked point: Sun path of the period, Sun and Earth, ray to the Earth
+    while (dyn.children.length) dyn.remove(dyn.children[0]);
+    var origin = vec(picked.e, picked.n, 12), path = [];
+    for (var j = 0; j < T; j += Math.max(1, Math.floor(T / 240))) path.push(origin.clone().addScaledVector(direction(RUN.sun[j][0], RUN.sun[j][1]), DOME));
+    dyn.add(line(path, sunMat));
+    var hc = hzCellOf(picked.e, picked.n);
+    var sunSeen = disc(sun[1] - hzCell(hc[0], hc[1], sb)), earthSeen = earth[1] > hzCell(hc[0], hc[1], earthBin[t]);
+    var sp = origin.clone().addScaledVector(direction(sun[0], sun[1]), DOME), ep = origin.clone().addScaledVector(direction(earth[0], earth[1]), DOME * 0.9);
+    sunBall.position.copy(sp); sunRing.position.copy(sp); earthBall.position.copy(ep);
+    dyn.add(sunRing); dyn.add(sunBall); dyn.add(earthBall);
+    dyn.add(line([origin, ep], earthSeen ? okMat : badMat));
+    if (Math.hypot(picked.e, picked.n) >= 30) dyn.add(line([origin, vec(picked.e, picked.n, 120)]));
+    sunLabel.v.copy(sp); sunLabel.v.y += 60; earthLabel.v.copy(ep); earthLabel.v.y += 55; pickLabel.v.copy(vec(picked.e, picked.n, 130 + (pose === "up" ? 4 * LANDER_SCALE : 0)));
+    sunLabel.el.innerHTML = "Sun<small>" + sun[1].toFixed(1) + "° high" + (sunSeen > 0.5 ? "" : sunSeen > 0 ? ", partly hidden" : ", hidden") + "</small>";
+    earthLabel.el.innerHTML = "Earth<small>" + earth[1].toFixed(1) + "° high, " + (earthSeen ? "in view" : "blocked by terrain") + "</small>";
+
+    // lander at the picked point: panels facing the visible Sun are light, the others hatched
+    lander.position.copy(vec(picked.e, picked.n));
+    lander.rotation.set(0, 0, pose === "side" ? -Math.PI / 2 : 0);   // on its side: fallen toward the east
+    lander.updateMatrixWorld(true);
+    var sd = new THREE.Vector3(se, Math.sin(sun[1] * RAD), -sn);
+    faces.forEach(function (fc) {
+      var nw = fc.normal.clone().applyQuaternion(lander.quaternion), on = sunSeen > 0.5 && nw.dot(sd) > 0.03;
+      fc.mesh.material.map = on ? null : hatchTex; fc.mesh.material.color.set(on ? 0xf8efda : 0xffffff); fc.mesh.material.needsUpdate = true;
+    });
+
+    var when = new Date(startMs + t * RUN.step_hours * 3600000).toISOString().slice(0, 16).replace("T", " ") + " UTC";
+    read.innerHTML = "<b>" + when + "</b> · day " + (t * RUN.step_hours / 24).toFixed(1) + " of " + RUN.period_days + " · Sun <b>" + sun[1].toFixed(2) +
+      "°</b>, azimuth <b>" + sun[0].toFixed(0) + "°</b> · Earth <b>" + earth[1].toFixed(2) + "°</b>, azimuth <b>" + earth[0].toFixed(0) +
+      "°</b> · at the site (720-direction masks): " + (RUN.sun_up[t] ? "<b>sunlit</b>" : "in shadow") + ", " + (RUN.earth_up[t] ? "<b>Earth in view</b>" : "no Earth");
+    drawBars(t);
+    render();
+  }
+  function render() {
+    var w = stage.clientWidth, h = stage.clientHeight;
+    if (renderer.domElement.width !== Math.round(w * renderer.getPixelRatio())) renderer.setSize(w, h, false);
+    renderer.domElement.style.width = w + "px"; renderer.domElement.style.height = h + "px";
+    camera.aspect = w / h; camera.updateProjectionMatrix();
+    camera.position.set(view.radius * Math.sin(view.polar) * Math.sin(view.around), view.radius * Math.cos(view.polar), view.radius * Math.sin(view.polar) * Math.cos(view.around));
+    camera.lookAt(0, 0, 0);
+    renderer.render(scene, camera);
+    var placed = ["title", "card", "legend"].map(function (id) {
+      var el = document.getElementById(id);
+      return [el.offsetLeft - 4, el.offsetTop - 4, el.offsetLeft + el.offsetWidth + 4, el.offsetTop + el.offsetHeight + 4];
+    });
+    var offsets = [[0, 0], [0, -1], [0, 1], [0, -2], [0, 2], [-1, 0], [1, 0], [0, 3], [0, -3], [0, 4]];
+    labels.forEach(function (item) {
+      var p = item.v.clone().project(camera);
+      if (p.z > 1 || !item.el.innerHTML) { item.el.style.display = "none"; return; }
+      item.el.style.display = "block";
+      var x0 = (p.x * 0.5 + 0.5) * w, y0 = (-p.y * 0.5 + 0.5) * h;
+      var lw = (item.el.offsetWidth || 80) + 8, lh = (item.el.offsetHeight || 28) + 4;
+      var chosen = null;
+      for (var oi = 0; oi < offsets.length; oi++) {
+        var cx = x0 + offsets[oi][0] * lw * 0.6, cy = y0 + offsets[oi][1] * lh * 0.85;
+        var box = [cx - lw / 2, cy - lh, cx + lw / 2, cy];
+        if (box[0] < 4 || box[1] < 4 || box[2] > w - 4 || box[3] > h - 4) continue;
+        if (!placed.some(function (q) { return box[0] < q[2] && box[2] > q[0] && box[1] < q[3] && box[3] > q[1]; })) {
+          chosen = [cx, cy, box]; break;
+        }
+      }
+      if (!chosen) { item.el.style.display = "none"; return; }
+      placed.push(chosen[2]);
+      item.el.style.left = chosen[0] + "px"; item.el.style.top = chosen[1] + "px";
+    });
+  }
+  function legend() {
+    var text = mode === 0 ? '<span class="sw" style="background:#f8efda;margin-left:0"></span>sunlit ground<span class="sw" style="background:#4d3320"></span>shadow (hatched)' :
+      mode === 1 ? '<span class="sw" style="background:#9d8055;margin-left:0"></span>low<span class="sw" style="background:#f8efda"></span>high (relief ' + D.height_range_m.toFixed(0) + " m)" :
+      '<span class="sw" style="background:#f8efda;margin-left:0"></span>flat<span class="sw" style="background:#8c5433"></span>30° or steeper';
+    document.getElementById("legend").innerHTML = text +
+      '<br><span class="sw" style="background:#9bb07a;margin-left:0"></span>ellipse: stretch ≥ ' + RUN.req_min + ' d<span class="sw" style="background:#a8503c"></span>shorter' +
+      '<br><span class="sw" style="background:#4f7a3a;height:3px;margin-left:0"></span>Earth in view<span class="sw" style="background:#a03a2a;height:3px"></span>Earth blocked' +
+      "<br>contours every 10 m · heights ×" + EX + " · lander drawn ×" + LANDER_SCALE +
+      "<br>Shadows are a visualisation; site numbers come from the 720-direction masks.";
+    document.getElementById("title").innerHTML = RUN.site_name + "<small>3 × 3 km · " + D.terrain.split(" (")[0] + " · " + RUN.period_days + " days from " + RUN.start_utc.slice(0, 16).replace("T", " ") + " UTC</small>";
+    Array.prototype.forEach.call(document.querySelectorAll("button[data-ex]"), function (b) { b.setAttribute("aria-pressed", +b.dataset.ex === EX ? "true" : "false"); });
+    Array.prototype.forEach.call(document.querySelectorAll("button[data-mode]"), function (b) { b.setAttribute("aria-pressed", +b.dataset.mode === mode ? "true" : "false"); });
+    Array.prototype.forEach.call(document.querySelectorAll("button[data-pose]"), function (b) { b.setAttribute("aria-pressed", b.dataset.pose === pose ? "true" : "false"); });
+  }
+  function rebuildAll() { fillPositions(); geometry.attributes.position.needsUpdate = true; material.uniforms.uContour.value = 10 * EX; rebuildStatic(); applyPick(); legend(); update(); }
+
+  // ---------- controls ----------
+  var drag = null, moved = 0, raycaster = new THREE.Raycaster();
+  stage.addEventListener("pointerdown", function (ev) { drag = { x: ev.clientX, y: ev.clientY }; moved = 0; stage.setPointerCapture(ev.pointerId); });
+  stage.addEventListener("pointermove", function (ev) {
+    if (!drag) return;
+    moved += Math.abs(ev.clientX - drag.x) + Math.abs(ev.clientY - drag.y);
+    view.around -= (ev.clientX - drag.x) * 0.006;
+    view.polar = Math.max(12 * RAD, Math.min(86 * RAD, view.polar - (ev.clientY - drag.y) * 0.005));
+    drag = { x: ev.clientX, y: ev.clientY }; render();
+  });
+  stage.addEventListener("pointerup", function (ev) {
+    drag = null;
+    if (moved > 5) return;   // a drag, not a click
+    var box = renderer.domElement.getBoundingClientRect();
+    raycaster.setFromCamera(new THREE.Vector2((ev.clientX - box.left) / box.width * 2 - 1, -(ev.clientY - box.top) / box.height * 2 + 1), camera);
+    var hit = raycaster.intersectObject(mesh)[0];
+    if (hit) { picked = { e: Math.max(-half, Math.min(half, hit.point.x)), n: Math.max(-half, Math.min(half, -hit.point.z)) }; applyPick(); update(); }
+  });
+  function zoom(factor) { view.radius = Math.max(1400, Math.min(11000, view.radius * factor)); render(); }
+  stage.addEventListener("wheel", function (ev) { if (!ev.ctrlKey && !ev.shiftKey) return; ev.preventDefault(); zoom(ev.deltaY > 0 ? 1.1 : 0.9); }, { passive: false });
+  document.getElementById("zin").addEventListener("click", function () { zoom(0.85); });
+  document.getElementById("zout").addEventListener("click", function () { zoom(1.18); });
+  Array.prototype.forEach.call(document.querySelectorAll("button[data-ex]"), function (b) { b.addEventListener("click", function () { EX = +b.dataset.ex; rebuildAll(); }); });
+  Array.prototype.forEach.call(document.querySelectorAll("button[data-mode]"), function (b) { b.addEventListener("click", function () { mode = +b.dataset.mode; material.uniforms.uMode.value = mode; legend(); render(); }); });
+  Array.prototype.forEach.call(document.querySelectorAll("button[data-pose]"), function (b) { b.addEventListener("click", function () { pose = b.dataset.pose; legend(); update(); }); });
+  document.getElementById("radius").addEventListener("input", function (ev) { radius = +ev.target.value; applyPick(); render(); });
+  document.getElementById("strip").addEventListener("click", function (ev) {
+    var box = bars.getBoundingClientRect(); slider.value = Math.round((ev.clientX - box.left) / box.width * (T - 1)); update();
+  });
+  window.addEventListener("resize", function () { update(); });
+  var timer = null, playBtn = document.getElementById("play");
+  function setPlaying(on) {
+    playBtn.textContent = on ? "Pause" : "Play"; playBtn.setAttribute("aria-pressed", on ? "true" : "false");
+    if (timer) { clearInterval(timer); timer = null; }
+    if (on) timer = setInterval(function () { slider.value = (parseInt(slider.value, 10) + 1) % T; update(); }, 110);
+  }
+  playBtn.addEventListener("click", function () { setPlaying(!timer); });
+  slider.addEventListener("input", update);
+  rebuildAll();
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(render);
+})();
+</script>
+</body>
+</html>

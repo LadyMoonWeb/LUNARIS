@@ -1,0 +1,7 @@
+# Everything needed to rebuild the data, run the validation and the tests.
+-r requirements.txt
+scipy
+rasterio>=1.5
+astroquery>=0.4.11
+matplotlib>=3.10
+pytest

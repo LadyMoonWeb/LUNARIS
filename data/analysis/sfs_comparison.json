@@ -1,0 +1,80 @@
+{
+ "athena_masks": {
+  "0": {
+   "azimuths_changed": 0,
+   "max_change_deg": -0.0035,
+   "azimuth_of_max_change_deg": 21.0,
+   "all": {
+    "mean": 0.0,
+    "std": 0.0,
+    "abs_p50": 0.0,
+    "abs_p95": 0.001,
+    "abs_max": 0.003
+   },
+   "changed_only": null
+  },
+  "2": {
+   "azimuths_changed": 0,
+   "max_change_deg": 0.0047,
+   "azimuth_of_max_change_deg": 155.0,
+   "all": {
+    "mean": 0.0,
+    "std": 0.001,
+    "abs_p50": 0.0,
+    "abs_p95": 0.002,
+    "abs_max": 0.005
+   },
+   "changed_only": null
+  }
+ },
+ "tile_centre": {
+  "lat": -85.42657728044321,
+  "lon": 31.7427611534189,
+  "observer_height_m": 2.0,
+  "sfs_minus_lola40": {
+   "mean": -0.08,
+   "std": 0.073,
+   "abs_p50": 0.061,
+   "abs_p95": 0.216,
+   "abs_max": 0.342
+  }
+ },
+ "generated_utc": "2026-11-15 04:57",
+ "sfs_tile_km": {
+  "x": [
+   65.0,
+   81.0
+  ],
+  "y": [
+   110.0,
+   126.0
+  ],
+  "pixel_m": 5.0
+ },
+ "athena_xy_km": [
+  77.11,
+  137.99
+ ],
+ "athena_inside_tile": false,
+ "athena_distance_to_tile_km": 11.99,
+ "crater_visible": false,
+ "crater_note": "The tile does not cover the Athena site, so its 20 m crater cannot be looked for. At 5 m/pixel such a crater would span 4 pixels in any case.",
+ "height_difference_sfs_minus_lola40_m": {
+  "mean": -0.021,
+  "std": 0.741,
+  "abs_p50": 0.407,
+  "abs_p95": 1.469,
+  "abs_max": 10.138
+ },
+ "height_difference_sfs_minus_lola10_m": {
+  "mean": 0.126,
+  "std": 0.652,
+  "abs_p50": 0.353,
+  "abs_p95": 1.286,
+  "abs_max": 8.173
+ },
+ "sfs_uncertainty_m": {
+  "median": 0.045,
+  "p95": 0.225
+ }
+}

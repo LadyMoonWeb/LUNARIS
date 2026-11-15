@@ -1,0 +1,97 @@
+{
+  "fetched_utc": "2026-11-14 12:44",
+  "files": [
+    {
+      "file": "data/dem/LDEM_80S_40MPP_ADJ.TIF",
+      "url": "https://pgda.gsfc.nasa.gov/data/LOLA_20mpp/LDEM_80S_40MPP_ADJ.TIF",
+      "bytes": 716299920,
+      "citation": "Barker et al. 2023, Planet. Sci. J. 4, 183 (PGDA product 90)"
+    },
+    {
+      "file": "data/reference/AVGVISIB_75S_120M_201608.TIF",
+      "url": "https://pgda.gsfc.nasa.gov/data/MoonIllumination/AVGVISIB_75S_120M_201608.TIF",
+      "bytes": 83052039,
+      "citation": "Mazarico et al. 2011, Icarus 211, 1066-1081 (PGDA product 69)"
+    },
+    {
+      "file": "data/reference/AVGVISIB_85S_060M_201608.TIF",
+      "url": "https://pgda.gsfc.nasa.gov/data/MoonIllumination/AVGVISIB_85S_060M_201608.TIF",
+      "bytes": 33994464,
+      "citation": "Mazarico et al. 2011, Icarus 211, 1066-1081 (PGDA product 69)"
+    },
+    {
+      "file": "data/reference/AVGVISIB_75S_120M_201608_EARTH.TIF",
+      "url": "https://pgda.gsfc.nasa.gov/data/MoonIllumination/AVGVISIB_75S_120M_201608_EARTH.TIF",
+      "bytes": 43148153,
+      "citation": "Mazarico et al. 2011, Icarus 211, 1066-1081 (PGDA product 69)"
+    },
+    {
+      "file": "data/reference/AVGVISIB_85S_060M_201608_EARTH.TIF",
+      "url": "https://pgda.gsfc.nasa.gov/data/MoonIllumination/AVGVISIB_85S_060M_201608_EARTH.TIF",
+      "bytes": 24862958,
+      "citation": "Mazarico et al. 2011, Icarus 211, 1066-1081 (PGDA product 69)"
+    },
+    {
+      "file": "data/reference/WAC_POLE_ILL_PCT_SOUTH_100M.IMG",
+      "url": "https://pds.lroc.im-ldi.com/data/LRO-L-LROC-5-RDR-V1.0/LROLRC_2001/DATA/BDR/WAC_POLE/WAC_POLE_ILL_PCT_SOUTH/WAC_POLE_ILL_PCT_SOUTH_100M.IMG",
+      "bytes": 5904896,
+      "citation": "Speyerer and Robinson 2013, Icarus 222, 122-136 (LROC RDR WAC_POLE_ILL_PCT_SOUTH)"
+    },
+    {
+      "file": "data/reference/WAC_POLE_ILL_PCT_SOUTH_100M.TIF",
+      "url": "https://pds.lroc.im-ldi.com/data/LRO-L-LROC-5-RDR-V1.0/LROLRC_2001/EXTRAS/BROWSE/WAC_POLE/WAC_POLE_ILL_PCT_SOUTH/WAC_POLE_ILL_PCT_SOUTH_100M.TIF",
+      "bytes": 1476925,
+      "citation": "Speyerer and Robinson 2013, Icarus 222, 122-136 (LROC RDR WAC_POLE_ILL_PCT_SOUTH, 8-bit GeoTIFF)"
+    },
+    {
+      "file": "data/reference/WAC_POLE_ILL_PCT_SOUTH_README.TXT",
+      "url": "https://pds.lroc.im-ldi.com/data/LRO-L-LROC-5-RDR-V1.0/LROLRC_2001/DATA/BDR/WAC_POLE/WAC_POLE_ILL_PCT_SOUTH/WAC_POLE_ILL_PCT_SOUTH_README.TXT",
+      "bytes": 3997,
+      "citation": "LROC RDR product description"
+    },
+    {
+      "file": "data/dem/near_athena_10m.tif",
+      "url": "https://pgda.gsfc.nasa.gov/data/LOLA_20mpp/LDEM_83S_10MPP_ADJ.TIF",
+      "bytes": 17802157,
+      "window_centre": [
+        -84.7906,
+        29.1957
+      ],
+      "half_width_m": 16000.0,
+      "citation": "Barker et al. 2023, Planet. Sci. J. 4, 183 (PGDA product 90)"
+    },
+    {
+      "file": "data/dem/near_connecting_ridge_10m.tif",
+      "url": "https://pgda.gsfc.nasa.gov/data/LOLA_20mpp/LDEM_83S_10MPP_ADJ.TIF",
+      "bytes": 23398586,
+      "window_centre": [
+        -89.47485,
+        -137.44314
+      ],
+      "half_width_m": 16000.0,
+      "citation": "Barker et al. 2023, Planet. Sci. J. 4, 183 (PGDA product 90)"
+    },
+    {
+      "file": "data/dem/near_shackleton_rim_10m.tif",
+      "url": "https://pgda.gsfc.nasa.gov/data/LOLA_20mpp/LDEM_83S_10MPP_ADJ.TIF",
+      "bytes": 23274484,
+      "window_centre": [
+        -89.68643,
+        -162.93714
+      ],
+      "half_width_m": 16000.0,
+      "citation": "Barker et al. 2023, Planet. Sci. J. 4, 183 (PGDA product 90)"
+    },
+    {
+      "file": "data/dem/near_de_gerlache_rim_10m.tif",
+      "url": "https://pgda.gsfc.nasa.gov/data/LOLA_20mpp/LDEM_83S_10MPP_ADJ.TIF",
+      "bytes": 23446799,
+      "window_centre": [
+        -88.66463,
+        -68.39564
+      ],
+      "half_width_m": 16000.0,
+      "citation": "Barker et al. 2023, Planet. Sci. J. 4, 183 (PGDA product 90)"
+    }
+  ]
+}

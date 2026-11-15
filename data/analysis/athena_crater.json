@@ -1,0 +1,329 @@
+{
+ "generated_utc": "2026-11-15 04:52",
+ "warning": "The crater rows are a MODEL: a parabolic bowl without a raised rim carved into the terrain. Only the 20 m diameter is from an official source; the depth is assumed.",
+ "site": {
+  "name": "IM-2 Athena",
+  "lat": -84.7906,
+  "lon": 29.1957
+ },
+ "crater_diameter_m": 20.0,
+ "crater_diameter_source": "LROC, 'IM-2 Athena Seen Obliquely' (10 Mar 2025): 'within a 20-meter diameter crater'",
+ "depth_ratios_assumed": [
+  0.1,
+  0.2
+ ],
+ "lander_size_source": "NASA NSSDC entry for IM-1 as returned by web search ('hexagonal cylinder, 4.0 meters tall and 1.57 meters wide'); the NSSDC page itself returned an error when read directly",
+ "landing_utc": "2025-03-06T17:30:00+00:00",
+ "windows_end_utc": {
+  "actual (12.75 h)": "2025-03-07T06:15:00+00:00",
+  "planned (10 d)": "2025-03-16T17:30:00+00:00",
+  "lunar day (29.5 d)": "2025-04-05T05:30:00+00:00"
+ },
+ "step": "10min",
+ "sun_altitude_range_lunar_day_deg": [
+  -5.44,
+  5.36
+ ],
+ "rows": [
+  {
+   "case": "plateau, no crater",
+   "model": false,
+   "depth_ratio": 0.0,
+   "depth_m": 0.0,
+   "observer_height_m": 0.0,
+   "height_meaning": "on the floor",
+   "horizon_min_deg": -1.38,
+   "horizon_mean_deg": 1.4,
+   "horizon_max_deg": 4.07,
+   "sun_days": {
+    "actual (12.75 h)": {
+     "centre_days": 0.528,
+     "disk_weighted_days": 0.528
+    },
+    "planned (10 d)": {
+     "centre_days": 10.0,
+     "disk_weighted_days": 10.0
+    },
+    "lunar day (29.5 d)": {
+     "centre_days": 13.306,
+     "disk_weighted_days": 13.307
+    }
+   }
+  },
+  {
+   "case": "plateau, no crater",
+   "model": false,
+   "depth_ratio": 0.0,
+   "depth_m": 0.0,
+   "observer_height_m": 0.8,
+   "height_meaning": "lander on its side, mid-body (width 1.57 m)",
+   "horizon_min_deg": -1.46,
+   "horizon_mean_deg": 1.22,
+   "horizon_max_deg": 4.07,
+   "sun_days": {
+    "actual (12.75 h)": {
+     "centre_days": 0.528,
+     "disk_weighted_days": 0.528
+    },
+    "planned (10 d)": {
+     "centre_days": 10.0,
+     "disk_weighted_days": 10.0
+    },
+    "lunar day (29.5 d)": {
+     "centre_days": 13.424,
+     "disk_weighted_days": 13.415
+    }
+   }
+  },
+  {
+   "case": "plateau, no crater",
+   "model": false,
+   "depth_ratio": 0.0,
+   "depth_m": 0.0,
+   "observer_height_m": 1.6,
+   "height_meaning": "lander on its side, upper side",
+   "horizon_min_deg": -1.47,
+   "horizon_mean_deg": 1.19,
+   "horizon_max_deg": 4.07,
+   "sun_days": {
+    "actual (12.75 h)": {
+     "centre_days": 0.528,
+     "disk_weighted_days": 0.528
+    },
+    "planned (10 d)": {
+     "centre_days": 10.0,
+     "disk_weighted_days": 10.0
+    },
+    "lunar day (29.5 d)": {
+     "centre_days": 13.431,
+     "disk_weighted_days": 13.425
+    }
+   }
+  },
+  {
+   "case": "plateau, no crater",
+   "model": false,
+   "depth_ratio": 0.0,
+   "depth_m": 0.0,
+   "observer_height_m": 4.0,
+   "height_meaning": "lander upright, top deck (height 4.0 m)",
+   "horizon_min_deg": -1.48,
+   "horizon_mean_deg": 1.11,
+   "horizon_max_deg": 4.06,
+   "sun_days": {
+    "actual (12.75 h)": {
+     "centre_days": 0.528,
+     "disk_weighted_days": 0.528
+    },
+    "planned (10 d)": {
+     "centre_days": 10.0,
+     "disk_weighted_days": 10.0
+    },
+    "lunar day (29.5 d)": {
+     "centre_days": 13.458,
+     "disk_weighted_days": 13.456
+    }
+   }
+  },
+  {
+   "case": "MODEL crater, depth/diameter 0.1 (depth 2 m)",
+   "model": true,
+   "depth_ratio": 0.1,
+   "depth_m": 2.0,
+   "observer_height_m": 0.0,
+   "height_meaning": "on the floor",
+   "horizon_min_deg": 8.09,
+   "horizon_mean_deg": 11.18,
+   "horizon_max_deg": 14.41,
+   "sun_days": {
+    "actual (12.75 h)": {
+     "centre_days": 0.0,
+     "disk_weighted_days": 0.0
+    },
+    "planned (10 d)": {
+     "centre_days": 0.0,
+     "disk_weighted_days": 0.0
+    },
+    "lunar day (29.5 d)": {
+     "centre_days": 0.0,
+     "disk_weighted_days": 0.0
+    }
+   }
+  },
+  {
+   "case": "MODEL crater, depth/diameter 0.1 (depth 2 m)",
+   "model": true,
+   "depth_ratio": 0.1,
+   "depth_m": 2.0,
+   "observer_height_m": 0.8,
+   "height_meaning": "lander on its side, mid-body (width 1.57 m)",
+   "horizon_min_deg": 3.57,
+   "horizon_mean_deg": 6.72,
+   "horizon_max_deg": 10.05,
+   "sun_days": {
+    "actual (12.75 h)": {
+     "centre_days": 0.0,
+     "disk_weighted_days": 0.0
+    },
+    "planned (10 d)": {
+     "centre_days": 6.104,
+     "disk_weighted_days": 6.043
+    },
+    "lunar day (29.5 d)": {
+     "centre_days": 6.104,
+     "disk_weighted_days": 6.043
+    }
+   }
+  },
+  {
+   "case": "MODEL crater, depth/diameter 0.1 (depth 2 m)",
+   "model": true,
+   "depth_ratio": 0.1,
+   "depth_m": 2.0,
+   "observer_height_m": 1.6,
+   "height_meaning": "lander on its side, upper side",
+   "horizon_min_deg": -0.86,
+   "horizon_mean_deg": 2.4,
+   "horizon_max_deg": 5.57,
+   "sun_days": {
+    "actual (12.75 h)": {
+     "centre_days": 0.528,
+     "disk_weighted_days": 0.528
+    },
+    "planned (10 d)": {
+     "centre_days": 10.0,
+     "disk_weighted_days": 10.0
+    },
+    "lunar day (29.5 d)": {
+     "centre_days": 11.854,
+     "disk_weighted_days": 11.857
+    }
+   }
+  },
+  {
+   "case": "MODEL crater, depth/diameter 0.1 (depth 2 m)",
+   "model": true,
+   "depth_ratio": 0.1,
+   "depth_m": 2.0,
+   "observer_height_m": 4.0,
+   "height_meaning": "lander upright, top deck (height 4.0 m)",
+   "horizon_min_deg": -1.47,
+   "horizon_mean_deg": 1.18,
+   "horizon_max_deg": 4.06,
+   "sun_days": {
+    "actual (12.75 h)": {
+     "centre_days": 0.528,
+     "disk_weighted_days": 0.528
+    },
+    "planned (10 d)": {
+     "centre_days": 10.0,
+     "disk_weighted_days": 10.0
+    },
+    "lunar day (29.5 d)": {
+     "centre_days": 13.437,
+     "disk_weighted_days": 13.43
+    }
+   }
+  },
+  {
+   "case": "MODEL crater, depth/diameter 0.2 (depth 4 m)",
+   "model": true,
+   "depth_ratio": 0.2,
+   "depth_m": 4.0,
+   "observer_height_m": 0.0,
+   "height_meaning": "on the floor",
+   "horizon_min_deg": 18.63,
+   "horizon_mean_deg": 21.48,
+   "horizon_max_deg": 24.51,
+   "sun_days": {
+    "actual (12.75 h)": {
+     "centre_days": 0.0,
+     "disk_weighted_days": 0.0
+    },
+    "planned (10 d)": {
+     "centre_days": 0.0,
+     "disk_weighted_days": 0.0
+    },
+    "lunar day (29.5 d)": {
+     "centre_days": 0.0,
+     "disk_weighted_days": 0.0
+    }
+   }
+  },
+  {
+   "case": "MODEL crater, depth/diameter 0.2 (depth 4 m)",
+   "model": true,
+   "depth_ratio": 0.2,
+   "depth_m": 4.0,
+   "observer_height_m": 0.8,
+   "height_meaning": "lander on its side, mid-body (width 1.57 m)",
+   "horizon_min_deg": 14.43,
+   "horizon_mean_deg": 17.42,
+   "horizon_max_deg": 20.61,
+   "sun_days": {
+    "actual (12.75 h)": {
+     "centre_days": 0.0,
+     "disk_weighted_days": 0.0
+    },
+    "planned (10 d)": {
+     "centre_days": 0.0,
+     "disk_weighted_days": 0.0
+    },
+    "lunar day (29.5 d)": {
+     "centre_days": 0.0,
+     "disk_weighted_days": 0.0
+    }
+   }
+  },
+  {
+   "case": "MODEL crater, depth/diameter 0.2 (depth 4 m)",
+   "model": true,
+   "depth_ratio": 0.2,
+   "depth_m": 4.0,
+   "observer_height_m": 1.6,
+   "height_meaning": "lander on its side, upper side",
+   "horizon_min_deg": 10.07,
+   "horizon_mean_deg": 13.18,
+   "horizon_max_deg": 16.51,
+   "sun_days": {
+    "actual (12.75 h)": {
+     "centre_days": 0.0,
+     "disk_weighted_days": 0.0
+    },
+    "planned (10 d)": {
+     "centre_days": 0.0,
+     "disk_weighted_days": 0.0
+    },
+    "lunar day (29.5 d)": {
+     "centre_days": 0.0,
+     "disk_weighted_days": 0.0
+    }
+   }
+  },
+  {
+   "case": "MODEL crater, depth/diameter 0.2 (depth 4 m)",
+   "model": true,
+   "depth_ratio": 0.2,
+   "depth_m": 4.0,
+   "observer_height_m": 4.0,
+   "height_meaning": "lander upright, top deck (height 4.0 m)",
+   "horizon_min_deg": -1.38,
+   "horizon_mean_deg": 1.39,
+   "horizon_max_deg": 4.07,
+   "sun_days": {
+    "actual (12.75 h)": {
+     "centre_days": 0.528,
+     "disk_weighted_days": 0.528
+    },
+    "planned (10 d)": {
+     "centre_days": 10.0,
+     "disk_weighted_days": 10.0
+    },
+    "lunar day (29.5 d)": {
+     "centre_days": 13.312,
+     "disk_weighted_days": 13.318
+    }
+   }
+  }
+ ]
+}

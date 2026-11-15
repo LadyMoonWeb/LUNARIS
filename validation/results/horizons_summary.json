@@ -1,0 +1,107 @@
+{
+  "generated_utc": "2026-11-14 07:17 UTC",
+  "reference": "JPL Horizons via astroquery, observer on the Moon (body 301), quantity 4 (apparent AZ/EL)",
+  "ours": "skyfield, DE421, MOON_ME_DE421, apparent positions",
+  "sites": 5,
+  "samples_per_site": 300,
+  "time_range_utc": [
+    "2026-01-01",
+    "2031-01-01"
+  ],
+  "seed": 2026,
+  "tolerance_deg": 0.01,
+  "passed": true,
+  "overall": {
+    "samples": 3000,
+    "max_abs_alt_deg": 1.5245005643649279e-05,
+    "mean_abs_alt_deg": 6.6289264987355096e-06,
+    "max_abs_az_deg": 0.00019582712479859765,
+    "mean_abs_az_deg": 7.901752057478007e-06,
+    "max_abs_deg": 0.00019582712479859765,
+    "mean_abs_deg": 7.265339278106758e-06
+  },
+  "worst_sample": {
+    "site": "Apollo 11",
+    "body": "sun",
+    "time_utc": "2027-11-11 17:35",
+    "d_alt_deg": -2.160076547852441e-06,
+    "d_az_deg": 0.00019582712479859765
+  },
+  "by_body": {
+    "earth": {
+      "samples": 1500,
+      "max_abs_alt_deg": 1.4620701264789204e-05,
+      "mean_abs_alt_deg": 7.746334608339788e-06,
+      "max_abs_az_deg": 3.988882656358328e-05,
+      "mean_abs_az_deg": 8.599108714956098e-06,
+      "max_abs_deg": 3.988882656358328e-05,
+      "mean_abs_deg": 8.172721661647943e-06
+    },
+    "sun": {
+      "samples": 1500,
+      "max_abs_alt_deg": 1.5245005643649279e-05,
+      "mean_abs_alt_deg": 5.511518389131231e-06,
+      "max_abs_az_deg": 0.00019582712479859765,
+      "mean_abs_az_deg": 7.2043953999999156e-06,
+      "max_abs_deg": 0.00019582712479859765,
+      "mean_abs_deg": 6.357956894565572e-06
+    }
+  },
+  "by_site": {
+    "Apollo 11": {
+      "lat": 0.67416,
+      "lon": 23.47314,
+      "samples": 600,
+      "max_abs_alt_deg": 1.018778515771146e-05,
+      "mean_abs_alt_deg": 3.3782726071663117e-06,
+      "max_abs_az_deg": 0.00019582712479859765,
+      "mean_abs_az_deg": 2.0047603971846683e-05,
+      "max_abs_deg": 0.00019582712479859765,
+      "mean_abs_deg": 1.1712938289506498e-05
+    },
+    "Apollo 15": {
+      "lat": 26.13239,
+      "lon": 3.6333,
+      "samples": 600,
+      "max_abs_alt_deg": 1.4542723690169623e-05,
+      "mean_abs_alt_deg": 7.1630676488032105e-06,
+      "max_abs_az_deg": 3.2720368608352146e-05,
+      "mean_abs_az_deg": 7.593465115197281e-06,
+      "max_abs_deg": 3.2720368608352146e-05,
+      "mean_abs_deg": 7.378266382000245e-06
+    },
+    "Chang'e 4": {
+      "lat": -45.4561,
+      "lon": 177.5885,
+      "samples": 600,
+      "max_abs_alt_deg": 1.5074347224697249e-05,
+      "mean_abs_alt_deg": 7.466328071124017e-06,
+      "max_abs_az_deg": 1.597583153056803e-05,
+      "mean_abs_az_deg": 4.456605870141554e-06,
+      "max_abs_deg": 1.597583153056803e-05,
+      "mean_abs_deg": 5.961466970632786e-06
+    },
+    "Chandrayaan-3": {
+      "lat": -69.367621,
+      "lon": 32.348126,
+      "samples": 600,
+      "max_abs_alt_deg": 1.4968633195167058e-05,
+      "mean_abs_alt_deg": 7.3664163734641955e-06,
+      "max_abs_az_deg": 1.1036959563170967e-05,
+      "mean_abs_az_deg": 3.99750659354936e-06,
+      "max_abs_deg": 1.4968633195167058e-05,
+      "mean_abs_deg": 5.681961483506778e-06
+    },
+    "IM-2 Athena": {
+      "lat": -84.7906,
+      "lon": 29.1957,
+      "samples": 600,
+      "max_abs_alt_deg": 1.5245005643649279e-05,
+      "mean_abs_alt_deg": 7.770547793119813e-06,
+      "max_abs_az_deg": 9.906569403028698e-06,
+      "mean_abs_az_deg": 3.413578736655154e-06,
+      "max_abs_deg": 1.5245005643649279e-05,
+      "mean_abs_deg": 5.592063264887484e-06
+    }
+  }
+}
