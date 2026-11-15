@@ -163,3 +163,41 @@ def render(sel: Selection) -> None:
     st.caption("A bar means the condition holds: Sun = centre of the solar disk above the horizon, "
                "Comm = Earth above the horizon, Sun + comm = both at once. The number is the longest "
                "Sun + comm stretch, which is compared with the 6–6.5 day requirement.")
+
+    polar_sites = [s for s in SITES if s.lat <= -80.0]
+    with st.expander(
+        f"Rank all {len(polar_sites)} south-polar sites for {sel.landing.strftime('%Y-%m-%d %H:%M')} UTC "
+        f"({sel.period_days} d, panel {sel.panel_height_m:g} m, antenna {sel.antenna_height_m:g} m)",
+        expanded=False,
+    ):
+        rank_rows = []
+        end_t = iso(sel.landing + pd.Timedelta(days=sel.period_days))
+        start_t = iso(sel.landing)
+        wanted = {sel.panel_height_m, sel.antenna_height_m}
+        terrain_on = sel.mask_key is not None or sel.lat > -80.0
+        for s in polar_sites:
+            m_key = s.key if terrain_on and wanted <= set(terrain.stored_heights(s.key)) else None
+            tbl = load_series(s.lat, s.lon, start_t, end_t, sel.panel_height_m, sel.antenna_height_m,
+                              m_key, sel.earth_definition)
+            st_sum = summary(tbl)
+            rank_rows.append({
+                "Site": s.name,
+                "Group": s.group,
+                "Verdict (6–6.5 d)": f"{theme.STATUS[st_sum['verdict'].level][1]} {st_sum['verdict'].label}",
+                "Longest sun + comm (d)": round(st_sum["longest_both_days"], 2),
+                "Longest sun (d)": round(st_sum["longest_sun_days"], 2),
+                "Longest comm (d)": round(st_sum["longest_earth_days"], 2),
+                "Sunlit (%)": round(100 * st_sum["sun_fraction"], 1),
+                "Comm (%)": round(100 * st_sum["earth_fraction"], 1),
+                "Sun + comm (%)": round(100 * st_sum["both_fraction"], 1),
+                "Coordinates": fmt_lat_lon(s.lat, s.lon),
+            })
+        rank_df = pd.DataFrame(rank_rows).sort_values(
+            by=["Longest sun + comm (d)", "Sun + comm (%)", "Sunlit (%)"], ascending=[False, False, False]
+        ).reset_index(drop=True)
+        rank_df.insert(0, "Rank", range(1, len(rank_df) + 1))
+        st.dataframe(rank_df, width="stretch", hide_index=True)
+        st.download_button("Download polar ranking CSV", rank_df.to_csv(index=False),
+                           file_name="polar_sites_ranking.csv", mime="text/csv", key="dl_polar_rank_csv")
+        st.caption(f"All {len(polar_sites)} preset sites south of 80° S ranked by longest unbroken simultaneous "
+                   "sunlight and Earth communication window using LOLA 720-direction terrain masks.")

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import date, datetime, time, timezone
+import json
 from typing import Optional
 
 import pandas as pd
@@ -228,14 +229,27 @@ def sidebar() -> Selection:
     side = st.sidebar
     side.header("Scenario")
 
+    qp = st.query_params
+    first_load = "qp_loaded" not in st.session_state
+    st.session_state["qp_loaded"] = True
+    qp_site = qp.get("site") if first_load else None
+
     labels = [site_label(site) for site in SITES] + [CUSTOM_LABEL]
-    default = next((i for i, site in enumerate(SITES) if site.key == DEFAULT_SITE_KEY), 0)
+    default = next((i for i, site in enumerate(SITES) if site.key == (qp_site or DEFAULT_SITE_KEY)),
+                   next((i for i, site in enumerate(SITES) if site.key == DEFAULT_SITE_KEY), 0))
+    if qp_site == "custom":
+        default = len(labels) - 1
     choice = side.selectbox("Landing site", labels, index=default)
 
     if choice == CUSTOM_LABEL:
         site = None
-        lat = side.number_input("Latitude (°, north positive)", -90.0, 90.0, -89.5, step=0.1, format="%.4f")
-        lon = side.number_input("Longitude (°, east positive)", -180.0, 180.0, 0.0, step=0.1, format="%.4f")
+        try:
+            def_lat = min(90.0, max(-90.0, float(qp.get("lat", -89.5)))) if first_load else -89.5
+            def_lon = min(180.0, max(-180.0, float(qp.get("lon", 0.0)))) if first_load else 0.0
+        except (TypeError, ValueError):
+            def_lat, def_lon = -89.5, 0.0
+        lat = side.number_input("Latitude (°, north positive)", -90.0, 90.0, def_lat, step=0.1, format="%.4f")
+        lon = side.number_input("Longitude (°, east positive)", -180.0, 180.0, def_lon, step=0.1, format="%.4f")
         name = f"Custom ({fmt_lat_lon(lat, lon)})"
         side.caption("Coordinates entered by hand, Mean Earth / Polar Axis frame.")
     else:
@@ -249,16 +263,48 @@ def sidebar() -> Selection:
                 st.caption(site.note)
 
     today = datetime.now(timezone.utc).date()
-    landing_date = side.date_input("Landing date (UTC)", value=min(max(today, MIN_DATE), MAX_DATE),
-                                   min_value=MIN_DATE, max_value=MAX_DATE)
-    landing_time = side.time_input("Landing time (UTC)", value=time(0, 0), step=1800)
-    period_days = side.slider("Analysis period (days)", 1, 30, 14)
+    def_date = min(max(today, MIN_DATE), MAX_DATE)
+    def_time = time(0, 0)
+    def_days = 14
     heights = [float(h) for h in terrain.MASK_HEIGHTS_M]
+    def_hp, def_ha = 2.0, 2.0
+    if first_load and qp:
+        try:
+            if "date" in qp:
+                def_date = min(max(date.fromisoformat(str(qp["date"])), MIN_DATE), MAX_DATE)
+        except ValueError:
+            pass
+        try:
+            if "time" in qp:
+                hh, mm = map(int, str(qp["time"]).split(":")[:2])
+                def_time = time(hh, mm)
+        except (ValueError, TypeError):
+            pass
+        try:
+            if "days" in qp:
+                def_days = min(30, max(1, int(qp["days"])))
+        except (ValueError, TypeError):
+            pass
+        try:
+            if "hp" in qp and float(qp["hp"]) in heights:
+                def_hp = float(qp["hp"])
+        except (ValueError, TypeError):
+            pass
+        try:
+            if "ha" in qp and float(qp["ha"]) in heights:
+                def_ha = float(qp["ha"])
+        except (ValueError, TypeError):
+            pass
+
+    landing_date = side.date_input("Landing date (UTC)", value=def_date,
+                                   min_value=MIN_DATE, max_value=MAX_DATE)
+    landing_time = side.time_input("Landing time (UTC)", value=def_time, step=1800)
+    period_days = side.slider("Analysis period (days)", 1, 30, def_days)
     panel_height = side.select_slider(
-        "Panel height above the ground (m)", heights, value=2.0, format_func=lambda h: f"{h:g}",
+        "Panel height above the ground (m)", heights, value=def_hp, format_func=lambda h: f"{h:g}",
         help="Sunlight is judged with the horizon seen from this height.")
     antenna_height = side.select_slider(
-        "Antenna height above the ground (m)", heights, value=2.0, format_func=lambda h: f"{h:g}",
+        "Antenna height above the ground (m)", heights, value=def_ha, format_func=lambda h: f"{h:g}",
         help="Earth visibility and the radio link are judged with the horizon seen from this height.")
 
     with side.expander("Artemis III regions without coordinates"):
@@ -311,5 +357,35 @@ def sidebar() -> Selection:
     )
 
     landing = pd.Timestamp(datetime.combine(landing_date, landing_time), tz="UTC")
+    with side.expander("Share or export scenario", expanded=False):
+        key_or_custom = site.key if site is not None else "custom"
+        params = {
+            "site": key_or_custom,
+            "lat": f"{lat:.4f}",
+            "lon": f"{lon:.4f}",
+            "date": landing_date.isoformat(),
+            "time": landing_time.strftime("%H:%M"),
+            "days": str(period_days),
+            "hp": f"{panel_height:g}",
+            "ha": f"{antenna_height:g}",
+        }
+        qs = "&".join(f"{k}={v}" for k, v in params.items())
+        st.code(f"?{qs}", language=None)
+        if st.button("Sync browser URL to scenario", key="sync_url_btn"):
+            st.query_params.update(params)
+        scenario_json = json.dumps({
+            "site_key": key_or_custom,
+            "site_name": name,
+            "lat_deg": round(float(lat), 5),
+            "lon_deg": round(float(lon), 5),
+            "landing_utc": iso(landing),
+            "period_days": int(period_days),
+            "panel_height_m": float(panel_height),
+            "antenna_height_m": float(antenna_height),
+            "terrain_mask": mask_key,
+            "earth_definition": EARTH_CHOICES[earth_choice],
+        }, indent=2)
+        st.download_button("Download scenario JSON", scenario_json, file_name="lunaris_scenario.json",
+                           mime="application/json", key="dl_scenario_json")
     return Selection(name, float(lat), float(lon), float(panel_height), float(antenna_height), landing,
                      int(period_days), site, mask_key, EARTH_CHOICES[earth_choice], note)
